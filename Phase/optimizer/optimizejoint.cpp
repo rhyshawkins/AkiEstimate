@@ -493,12 +493,15 @@ static bool invert(DispersionData &data_love,
 		   const char *output_prefix,
 		   bool jacobians,
 		   double gaussian_smooth,
-		   int mode)
+		   int mode,
+		   int skip)
 {
   Spec1DMatrix<double> dkdp_love;
   Spec1DMatrix<double> dUdp_love;
   Spec1DMatrix<double> dLdp_love;
   Spec1DMatrix<double> G_love;
+  Spec1DMatrix<double> Gk_love;
+  Spec1DMatrix<double> GU_love;
   Spec1DMatrix<double> residuals_love;
   Spec1DMatrix<double> Cd_love;
 
@@ -506,6 +509,8 @@ static bool invert(DispersionData &data_love,
   Spec1DMatrix<double> dUdp_rayleigh;
   Spec1DMatrix<double> dLdp_rayleigh;
   Spec1DMatrix<double> G_rayleigh;
+  Spec1DMatrix<double> Gk_rayleigh;
+  Spec1DMatrix<double> GU_rayleigh;
   Spec1DMatrix<double> residuals_rayleigh;
   Spec1DMatrix<double> Cd_rayleigh;
 
@@ -527,53 +532,104 @@ static bool invert(DispersionData &data_love,
   step[0] = new SimpleStep();
   step[1] = new QuasiNewton();
 
-  double frequency_thin = 0.0;
+  double frequency_thin = 0.0; // not used
 
   //
   // Build envelopes
   //
   data_love.compute_envelope(gaussian_smooth);
   data_rayleigh.compute_envelope(gaussian_smooth);
-  
-  double like_love = likelihood_love_bessel(data_love,
-					    model,
-					    reference,
-					    damping,
-					    posterior,
-					    mesh,
-					    love,
-					    dkdp_love,
-					    dUdp_love,
-					    dLdp_love,
-					    G_love,
-					    residuals_love,
-					    Cd_love,
-					    threshold,
-					    order,
-					    highorder,
-					    boundaryorder,
-					    scale,
-					    frequency_thin);
 
-  double like_rayleigh = likelihood_rayleigh_bessel(data_rayleigh,
-						    model,
-						    reference,
-						    damping,
-						    posterior,
-						    mesh,
-						    rayleigh,
-						    dkdp_rayleigh,
-						    dUdp_rayleigh,
-						    dLdp_rayleigh,
-						    G_rayleigh,
-						    residuals_rayleigh,
-						    Cd_rayleigh,
-						    threshold,
-						    order,
-						    highorder,
-						    boundaryorder,
-						    scale,
-						    frequency_thin);
+  double like_love;
+  double like_rayleigh;
+  
+  if (skip <= 1) {
+    like_love = likelihood_love_bessel(data_love,
+				       model,
+				       reference,
+				       damping,
+				       posterior,
+				       mesh,
+				       love,
+				       dkdp_love,
+				       dUdp_love,
+				       dLdp_love,
+				       G_love,
+				       residuals_love,
+				       Cd_love,
+				       threshold,
+				       order,
+				       highorder,
+				       boundaryorder,
+				       scale,
+				       frequency_thin);
+    
+    like_rayleigh = likelihood_rayleigh_bessel(data_rayleigh,
+					       model,
+					       reference,
+					       damping,
+					       posterior,
+					       mesh,
+					       rayleigh,
+					       dkdp_rayleigh,
+					       dUdp_rayleigh,
+					       dLdp_rayleigh,
+					       G_rayleigh,
+					       residuals_rayleigh,
+					       Cd_rayleigh,
+					       threshold,
+					       order,
+					       highorder,
+					       boundaryorder,
+					       scale,
+					       frequency_thin);
+    
+  } else {
+    like_love = likelihood_love_bessel_spline(data_love,
+					      model,
+					      reference,
+					      damping,
+					      false,
+					      mesh,
+					      love,
+					      dkdp_love,
+					      dUdp_love,
+					      dLdp_love,
+					      G_love,
+					      Gk_love,
+					      GU_love,
+					      residuals_love,
+					      Cd_love,
+					      threshold,
+					      order,
+					      highorder,
+					      boundaryorder,
+					      scale,
+					      skip);
+    
+    like_rayleigh = likelihood_rayleigh_bessel_spline(data_rayleigh,
+						      model,
+						      reference,
+						      damping,
+						      false,
+						      mesh,
+						      rayleigh,
+						      dkdp_rayleigh,
+						      dUdp_rayleigh,
+						      dLdp_rayleigh,
+						      G_rayleigh,
+						      Gk_rayleigh,
+						      GU_rayleigh,
+						      residuals_rayleigh,
+						      Cd_rayleigh,
+						      threshold,
+						      order,
+						      highorder,
+						      boundaryorder,
+						      scale,
+						      skip);
+  }
+    
 
   double like = like_love + like_rayleigh;
   printf("init: %16.9e\n", like);
@@ -672,58 +728,8 @@ static bool invert(DispersionData &data_love,
       // Recompute Likelihood
       //
       last_like = like;
-      
-      like_love = likelihood_love_bessel(data_love,
-					 model,
-					 reference,
-					 damping,
-					 posterior,
-					 mesh,
-					 love,
-					 dkdp_love,
-					 dUdp_love,
-					 dLdp_love,
-					 G_love,
-					 residuals_love,
-					 Cd_love,
-					 threshold,
-					 order,
-					 highorder,
-					 boundaryorder,
-					 scale,
-					 frequency_thin);
-      
-      like_rayleigh = likelihood_rayleigh_bessel(data_rayleigh,
-						 model,
-						 reference,
-						 damping,
-						 posterior,
-						 mesh,
-						 rayleigh,
-						 dkdp_rayleigh,
-						 dUdp_rayleigh,
-						 dLdp_rayleigh,
-						 G_rayleigh,
-						 residuals_rayleigh,
-						 Cd_rayleigh,
-						 threshold,
-						 order,
-						 highorder,
-						 boundaryorder,
-						 scale,
-						 frequency_thin);
-      
-      like = like_love + like_rayleigh;
-      
-      if (like > last_like) {
-	
-	//
-	// Back track and recompute (a little inefficient here)
-	//
-	printf("%4d: Backtracking %16.9e %16.9e\n", iterations, like, last_like);
-	
-	LeastSquaresIterator::copy(model_v, model);
-	
+
+      if (skip <= 1) {
 	like_love = likelihood_love_bessel(data_love,
 					   model,
 					   reference,
@@ -763,6 +769,191 @@ static bool invert(DispersionData &data_love,
 						   boundaryorder,
 						   scale,
 						   frequency_thin);
+
+      } else {
+      like_love = likelihood_love_bessel(data_love,
+					 model,
+					 reference,
+					 damping,
+					 false,
+					 mesh,
+					 love,
+					 dkdp_love,
+					 dUdp_love,
+					 dLdp_love,
+					 G_love,
+					 residuals_love,
+					 Cd_love,
+					 threshold,
+					 order,
+					 highorder,
+					 boundaryorder,
+					 scale,
+					 frequency_thin);
+      
+      like_rayleigh = likelihood_rayleigh_bessel(data_rayleigh,
+						 model,
+						 reference,
+						 damping,
+						 false,
+						 mesh,
+						 rayleigh,
+						 dkdp_rayleigh,
+						 dUdp_rayleigh,
+						 dLdp_rayleigh,
+						 G_rayleigh,
+						 residuals_rayleigh,
+						 Cd_rayleigh,
+						 threshold,
+						 order,
+						 highorder,
+						 boundaryorder,
+						 scale,
+						 frequency_thin);
+    } else {
+      like_love = likelihood_love_bessel_spline(data_love,
+						model,
+						reference,
+						damping,
+						posterior,
+						mesh,
+						love,
+						dkdp_love,
+						dUdp_love,
+						dLdp_love,
+						G_love,
+						Gk_love,
+						GU_love,
+						residuals_love,
+						Cd_love,
+						threshold,
+						order,
+						highorder,
+						boundaryorder,
+						scale,
+						skip);
+      
+      like_rayleigh = likelihood_rayleigh_bessel_spline(data_rayleigh,
+							model,
+							reference,
+							damping,
+							posterior,
+							mesh,
+							rayleigh,
+							dkdp_rayleigh,
+							dUdp_rayleigh,
+							dLdp_rayleigh,
+							G_rayleigh,
+							Gk_rayleigh,
+							GU_rayleigh,
+							residuals_rayleigh,
+							Cd_rayleigh,
+							threshold,
+							order,
+							highorder,
+							boundaryorder,
+							scale,
+							skip);
+      
+      }
+      
+      like = like_love + like_rayleigh;
+      
+      if (like > last_like) {
+	
+	//
+	// Back track and recompute (a little inefficient here)
+	//
+	printf("%4d: Backtracking %16.9e %16.9e\n", iterations, like, last_like);
+	
+	LeastSquaresIterator::copy(model_v, model);
+
+	if (skip <= 1) {
+	  like_love = likelihood_love_bessel(data_love,
+					     model,
+					     reference,
+					     damping,
+					     posterior,
+					     mesh,
+					     love,
+					     dkdp_love,
+					     dUdp_love,
+					     dLdp_love,
+					     G_love,
+					     residuals_love,
+					     Cd_love,
+					     threshold,
+					     order,
+					     highorder,
+					     boundaryorder,
+					     scale,
+					     frequency_thin);
+	  
+	  like_rayleigh = likelihood_rayleigh_bessel(data_rayleigh,
+						     model,
+						     reference,
+						     damping,
+						     posterior,
+						     mesh,
+						     rayleigh,
+						     dkdp_rayleigh,
+						     dUdp_rayleigh,
+						     dLdp_rayleigh,
+						     G_rayleigh,
+						     residuals_rayleigh,
+						     Cd_rayleigh,
+						     threshold,
+						     order,
+						     highorder,
+						     boundaryorder,
+						     scale,
+						     frequency_thin);
+	  
+	} else {
+	  like_love = likelihood_love_bessel_spline(data_love,
+						    model,
+						    reference,
+						    damping,
+						    false,
+						    mesh,
+						    love,
+						    dkdp_love,
+						    dUdp_love,
+						    dLdp_love,
+						    G_love,
+						    Gk_love,
+						    GU_love,
+						    residuals_love,
+						    Cd_love,
+						    threshold,
+						    order,
+						    highorder,
+						    boundaryorder,
+						    scale,
+						    skip);
+	  
+	  like_rayleigh = likelihood_rayleigh_bessel_spline(data_rayleigh,
+							    model,
+							    reference,
+							    damping,
+							    false,
+							    mesh,
+							    rayleigh,
+							    dkdp_rayleigh,
+							    dUdp_rayleigh,
+							    dLdp_rayleigh,
+							    G_rayleigh,
+							    Gk_rayleigh,
+							    GU_rayleigh,
+							    residuals_rayleigh,
+							    Cd_rayleigh,
+							    threshold,
+							    order,
+							    highorder,
+							    boundaryorder,
+							    scale,
+							    skip);
+	}	
 	
 	like = like_love + like_rayleigh;
 	
