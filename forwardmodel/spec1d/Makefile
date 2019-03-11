@@ -1,5 +1,4 @@
 
-INCLUDES = -I/usr/include/eigen3
 CXX ?= g++
 CXXFLAGS = -c -g -Wall -std=c++11 $(INCLUDES)
 
