@@ -69,7 +69,8 @@ static bool invert(DispersionData &data_love,
 		   const char *outputprefix,
 		   bool jacobians,
 		   double gaussian_smooth,
-		   int mode);
+		   int mode,
+		   int skip);
 
 int main(int argc, char *argv[])
 {
@@ -103,8 +104,7 @@ int main(int argc, char *argv[])
   double gaussian_smooth;
 
   int mode;
-
-  int nsweeps;
+  int skip;
 
   //
   // Defaults
@@ -141,8 +141,7 @@ int main(int argc, char *argv[])
   gaussian_smooth = 0.0;
 
   mode = 0;
-
-  nsweeps = 1;
+  skip = 0;
   
   //
   // Command line parameters
@@ -297,14 +296,6 @@ int main(int argc, char *argv[])
       }
       break;
 
-    case 'W':
-      nsweeps = atoi(optarg);
-      if (nsweeps < 1) {
-	fprintf(stderr, "error: need at least on sweep\n");
-	return -1;
-      }
-      break;
-
     default:
       fprintf(stderr, "unknown option %c\n", c);
     case 'h':
@@ -366,63 +357,33 @@ int main(int argc, char *argv[])
   LoveMatrices<double, MAXORDER, BOUNDARYORDER> love;
   RayleighMatrices<double, MAXORDER, BOUNDARYORDER> rayleigh;
 
-  int sweep_min = data_love.ffirst;
-  int sweep_max = data_love.flast;
-
-  int *sweeps = new int[nsweeps];
-  int total = sweep_max - sweep_min;
-  for (int i = 0; i < nsweeps; i ++) {
-    int t = total/(nsweeps - i);
-    total -= t;
-    sweeps[i] = t;
-  }
-
-  for (int i = 1; i < nsweeps; i ++) {
-    sweeps[i] += sweeps[i - 1];
-  }
-
-  if (sweeps[nsweeps - 1] != (sweep_max - sweep_min)) {
-    fprintf(stderr, "error: invalid sweep calculation: %d %d\n", sweeps[nsweeps - 1],
-	    (sweep_max - sweep_min));
+  printf("Begining \n");
+    
+  if (!invert(data_love,
+	      data_rayleigh,
+	      reference.model,
+	      reference.reference,
+	      damping,
+	      nodata,
+	      mesh,
+	      love,
+	      rayleigh,
+	      threshold,
+	      order,
+	      highorder,
+	      boundaryorder,
+	      scale,
+	      epsilon,
+	      maxiterations,
+	      output_file,
+	      jacobians,
+	      gaussian_smooth,
+	      mode,
+	      skip)) {
+    fprintf(stderr, "error: failed to invert\n");
     return -1;
   }
-
-  for (int i = 0; i < nsweeps; i ++) {
-
-    data_love.ffirst = sweep_min;
-    data_love.flast = sweep_min + sweeps[i];
   
-    data_rayleigh.ffirst = sweep_min;
-    data_rayleigh.flast = sweep_min + sweeps[i];
-
-    printf("Begining sweep %d/%d: %d .. %d\n", i, nsweeps, sweep_min, sweep_min + sweeps[i]);
-    
-    if (!invert(data_love,
-		data_rayleigh,
-		reference.model,
-		reference.reference,
-		damping,
-		nodata,
-		mesh,
-		love,
-		rayleigh,
-		threshold,
-		order,
-		highorder,
-		boundaryorder,
-		scale,
-		epsilon,
-		maxiterations,
-		output_file,
-		jacobians,
-		gaussian_smooth,
-		mode)) {
-      fprintf(stderr, "error: failed to invert\n");
-      return -1;
-    }
-
-  }
-
   char filename[1024];
   
   //
@@ -771,90 +732,50 @@ static bool invert(DispersionData &data_love,
 						   frequency_thin);
 
       } else {
-      like_love = likelihood_love_bessel(data_love,
-					 model,
-					 reference,
-					 damping,
-					 false,
-					 mesh,
-					 love,
-					 dkdp_love,
-					 dUdp_love,
-					 dLdp_love,
-					 G_love,
-					 residuals_love,
-					 Cd_love,
-					 threshold,
-					 order,
-					 highorder,
-					 boundaryorder,
-					 scale,
-					 frequency_thin);
-      
-      like_rayleigh = likelihood_rayleigh_bessel(data_rayleigh,
-						 model,
-						 reference,
-						 damping,
-						 false,
-						 mesh,
-						 rayleigh,
-						 dkdp_rayleigh,
-						 dUdp_rayleigh,
-						 dLdp_rayleigh,
-						 G_rayleigh,
-						 residuals_rayleigh,
-						 Cd_rayleigh,
-						 threshold,
-						 order,
-						 highorder,
-						 boundaryorder,
-						 scale,
-						 frequency_thin);
-    } else {
-      like_love = likelihood_love_bessel_spline(data_love,
-						model,
-						reference,
-						damping,
-						posterior,
-						mesh,
-						love,
-						dkdp_love,
-						dUdp_love,
-						dLdp_love,
-						G_love,
-						Gk_love,
-						GU_love,
-						residuals_love,
-						Cd_love,
-						threshold,
-						order,
-						highorder,
-						boundaryorder,
-						scale,
-						skip);
-      
-      like_rayleigh = likelihood_rayleigh_bessel_spline(data_rayleigh,
-							model,
-							reference,
-							damping,
-							posterior,
-							mesh,
-							rayleigh,
-							dkdp_rayleigh,
-							dUdp_rayleigh,
-							dLdp_rayleigh,
-							G_rayleigh,
-							Gk_rayleigh,
-							GU_rayleigh,
-							residuals_rayleigh,
-							Cd_rayleigh,
-							threshold,
-							order,
-							highorder,
-							boundaryorder,
-							scale,
-							skip);
-      
+	like_love = likelihood_love_bessel_spline(data_love,
+						  model,
+						  reference,
+						  damping,
+						  posterior,
+						  mesh,
+						  love,
+						  dkdp_love,
+						  dUdp_love,
+						  dLdp_love,
+						  G_love,
+						  Gk_love,
+						  GU_love,
+						  residuals_love,
+						  Cd_love,
+						  threshold,
+						  order,
+						  highorder,
+						  boundaryorder,
+						  scale,
+						  skip);
+	
+	like_rayleigh = likelihood_rayleigh_bessel_spline(data_rayleigh,
+							  model,
+							  reference,
+							  damping,
+							  posterior,
+							  mesh,
+							  rayleigh,
+							  dkdp_rayleigh,
+							  dUdp_rayleigh,
+							  dLdp_rayleigh,
+							  G_rayleigh,
+							  Gk_rayleigh,
+							  GU_rayleigh,
+							  residuals_rayleigh,
+							  Cd_rayleigh,
+							  threshold,
+							  order,
+							  highorder,
+							  boundaryorder,
+							  scale,
+							  skip);
+	
       }
       
       like = like_love + like_rayleigh;
@@ -914,7 +835,7 @@ static bool invert(DispersionData &data_love,
 						    model,
 						    reference,
 						    damping,
-						    false,
+						    posterior,
 						    mesh,
 						    love,
 						    dkdp_love,
@@ -936,7 +857,7 @@ static bool invert(DispersionData &data_love,
 							    model,
 							    reference,
 							    damping,
-							    false,
+							    posterior,
 							    mesh,
 							    rayleigh,
 							    dkdp_rayleigh,

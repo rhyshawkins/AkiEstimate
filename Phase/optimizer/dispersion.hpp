@@ -51,6 +51,7 @@ public:
     ncfreal.resize(samples);
     ncfimag.resize(samples);
 
+    predicted_k.resize(samples);
     predicted_group.resize(samples);
     predicted_phase.resize(samples);
     predicted_bessel.resize(samples);
@@ -553,6 +554,7 @@ public:
   std::vector<double> time;
   double max_amplitude;
 
+  std::vector<double> predicted_k;
   std::vector<double> predicted_group;
   std::vector<double> predicted_phase;
   std::vector<double> predicted_bessel;

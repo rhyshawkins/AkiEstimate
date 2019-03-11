@@ -63,7 +63,8 @@ static bool invert(DispersionData &data,
 		   const char *output_prefix,
 		   bool jacobians,
 		   double gaussian_smooth,
-		   int mode);
+		   int mode,
+		   int skip);
 
 int main(int argc, char *argv[])
 {
@@ -98,6 +99,7 @@ int main(int argc, char *argv[])
   double gaussian_smooth;
 
   int mode;
+  int skip;
 
   //
   // Defaults
@@ -132,6 +134,7 @@ int main(int argc, char *argv[])
   gaussian_smooth = 0.0;
 
   mode = 0;
+  skip = 0;
   
   //
   // Command line parameters
@@ -336,7 +339,8 @@ int main(int argc, char *argv[])
 	      output_file,
 	      jacobians,
 	      gaussian_smooth,
-	      mode)) {
+	      mode,
+	      skip)) {
     fprintf(stderr, "error: failed to invert\n");
     return -1;
   }
@@ -395,7 +399,8 @@ static bool invert(DispersionData &data,
 		   const char *output_prefix,
 		   bool jacobians,
 		   double gaussian_smooth,
-		   int mode)
+		   int mode,
+		   int skip)
 {
   Spec1DMatrix<double> dkdp;
   Spec1DMatrix<double> dUdp;
@@ -406,6 +411,8 @@ static bool invert(DispersionData &data,
   Spec1DMatrix<double> model_v_proposed;
 
   Spec1DMatrix<double> G;
+  Spec1DMatrix<double> G_k;
+  Spec1DMatrix<double> G_U;
   Spec1DMatrix<double> model_0;
 
   Spec1DMatrix<double> Cd;
@@ -450,25 +457,50 @@ static bool invert(DispersionData &data,
   //
   double frequency_thin = 0.0;
 
-  like = likelihood_love_bessel(data,
-				model,
-				reference,
-				damping,
-				posterior,
-				mesh,
-				love,
-				dkdp,
-				dUdp,
-				dLdp,
-				G,
-				residuals,
-				Cd,
-				threshold,
-				order,
-				highorder,
-				boundaryorder,
-				scale,
-				frequency_thin);
+  if (skip <= 1) {
+    like = likelihood_love_bessel(data,
+				  model,
+				  reference,
+				  damping,
+				  posterior,
+				  mesh,
+				  love,
+				  dkdp,
+				  dUdp,
+				  dLdp,
+				  G,
+				  residuals,
+				  Cd,
+				  threshold,
+				  order,
+				  highorder,
+				  boundaryorder,
+				  scale,
+				  frequency_thin);
+  } else {
+    like = likelihood_love_bessel_spline(data,
+					 model,
+					 reference,
+					 damping,
+					 posterior,
+					 mesh,
+					 love,
+					 dkdp,
+					 dUdp,
+					 dLdp,
+					 G,
+					 G_k,
+					 G_U,
+					 residuals,
+					 Cd,
+					 threshold,
+					 order,
+					 highorder,
+					 boundaryorder,
+					 scale,
+					 skip);
+  }    
+    
   printf("init: %16.9e\n", like);
   double last_like = like;
 
@@ -539,36 +571,7 @@ static bool invert(DispersionData &data,
     //
     last_like = like;
 
-    like = likelihood_love_bessel(data,
-				  model,
-				  reference,
-				  damping,
-				  posterior,
-				  mesh,
-				  love,
-				  dkdp,
-				  dUdp,
-				  dLdp,
-				  G,
-				  residuals,
-				  Cd,
-				  threshold,
-				  order,
-				  highorder,
-				  boundaryorder,
-				  scale,
-				  frequency_thin);
-
-    if (like > last_like) {
-      
-      
-      //
-      // Back track and recompute (a little inefficient here)
-      //
-      printf("%4d: Backtracking\n", iterations);
-      
-      LeastSquaresIterator::copy(model_v, model);
-
+    if (skip <= 1) {
       like = likelihood_love_bessel(data,
 				    model,
 				    reference,
@@ -588,6 +591,85 @@ static bool invert(DispersionData &data,
 				    boundaryorder,
 				    scale,
 				    frequency_thin);
+    } else {
+      like = likelihood_love_bessel_spline(data,
+					   model,
+					   reference,
+					   damping,
+					   posterior,
+					   mesh,
+					   love,
+					   dkdp,
+					   dUdp,
+					   dLdp,
+					   G,
+					   G_k,
+					   G_U,
+					   residuals,
+					   Cd,
+					   threshold,
+					   order,
+					   highorder,
+					   boundaryorder,
+					   scale,
+					   skip);
+    }      
+
+    if (like > last_like) {
+      
+      
+      //
+      // Back track and recompute (a little inefficient here)
+      //
+      printf("%4d: Backtracking\n", iterations);
+      
+      LeastSquaresIterator::copy(model_v, model);
+
+
+      if (skip <= 1) {
+	like = likelihood_love_bessel(data,
+				      model,
+				      reference,
+				      damping,
+				      posterior,
+				      mesh,
+				      love,
+				      dkdp,
+				      dUdp,
+				      dLdp,
+				      G,
+				      residuals,
+				      Cd,
+				      threshold,
+				      order,
+				      highorder,
+				      boundaryorder,
+				      scale,
+				      frequency_thin);
+      } else {
+	like = likelihood_love_bessel_spline(data,
+					     model,
+					     reference,
+					     damping,
+					     posterior,
+					     mesh,
+					     love,
+					     dkdp,
+					     dUdp,
+					     dLdp,
+					     G,
+					     G_k,
+					     G_U,
+					     residuals,
+					     Cd,
+					     threshold,
+					     order,
+					     highorder,
+					     boundaryorder,
+					     scale,
+					     skip);
+      }
+	
 
       if (epsilon[m] < EPSILON_MIN) {
 	printf("%4d: Exiting\n", iterations);
