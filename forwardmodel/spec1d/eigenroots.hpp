@@ -1,3 +1,28 @@
+//
+//    Spec1D : A spectral element code for surface wave dispersion of Love
+//    and Rayleigh waves. See
+//
+//      R Hawkins, "A spectral element method for surface wave dispersion and adjoints",
+//      Geophysical Journal International, 2018, 215:1, 267 - 302
+//      https://doi.org/10.1093/gji/ggy277
+//    
+//    Copyright (C) 2014 - 2018 Rhys Hawkins
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//
+
 #pragma once
 #ifndef eigenroots_hpp
 #define eigenroots_hpp
@@ -40,15 +65,6 @@ eigensolveroots(const Polynomial<real> &poly,
     if (i < (N - 1)) {
       A(i + 1, i) = 1.0;
     }
-  }
-
-  for (int j = 0; j < N; j ++) {
-    for (int i = 0; i < N; i ++) {
-
-      printf("%.20lg ", (double)A(j, i));
-
-    }
-    printf("\n");
   }
 
   if (!GEP(A, I, work, eu, ev, lambda)) {
@@ -138,14 +154,6 @@ bool eigensolveroots_lobatto(size_t order,
 
       }
 
-      // for (size_t j = 0; j < N; j ++) {
-      // 	for (size_t i = 0; i < N; i ++) {
-
-      // 	  printf("%7.3f ", (double)A(j, i));
-	  
-      // 	}
-      // 	printf("\n");
-      // }
       if (!GEP(A, I, work, eu, ev, lambda)) {
 	ERROR("Failed to compute eigen values");
 	return false;

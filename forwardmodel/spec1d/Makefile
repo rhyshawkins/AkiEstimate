@@ -14,8 +14,7 @@ INSTALLFLAGS = -D
 
 OBJS = ak135.o \
 	iasp91.o \
-	logging.o \
-	simplified_ak135.o
+	logging.o 
 
 all : $(TARGETS)
 
@@ -59,27 +58,11 @@ SRCS = Makefile \
 	polynomial.hpp \
 	rayleighmatrices.hpp \
 	regression.hpp \
-	simplified_ak135.hpp \
 	spec1dmatrix.hpp \
 	ak135.cpp \
 	iasp91.cpp \
-	logging.cpp \
-	simplified_ak135.cpp
+	logging.cpp
 
-
-
-DATE = $(shell date +"%Y%m%d%H%M")
-DIR = spec1d
-TGZ = $(DIR).tar.gz
-
-dist :
-	mkdir -p $(DIR)
-	echo $(DATE) > $(DIR)/Version
-	for f in $(SRCS) $(EXTRADIST); do \
-	    $(INSTALL) $(INSTALLFLAGS) $$f $(DIR)/$$f ; \
-	done
-	tar -czf $(TGZ) $(DIR)/*
-	rm -rf $(DIR)
 
 clean :
 	rm -f $(TARGETS) *.o
