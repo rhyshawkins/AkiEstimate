@@ -9,7 +9,7 @@
 #include "simple.hpp"
 #include "quasinewton.hpp"
 
-static char short_options[] = "i:c:I:C:r:f:F:R:V:X:S:o:s:p:b:t:P:N:e:QA:WM:h";
+static char short_options[] = "i:c:I:C:r:f:F:R:V:X:S:o:s:p:b:t:P:N:e:QA:WM:T:h";
 static struct option long_options[] = {
   {"input-love", required_argument, 0, 'i'},
   {"phase-love", required_argument, 0, 'c'},
@@ -42,6 +42,8 @@ static struct option long_options[] = {
   {"amplitude-threshold", required_argument, 0, 'A'},
   {"write-ftan", no_argument, 0, 'W'},
   {"mode", required_argument, 0, 'M'},
+
+  {"thin", required_argument, 0, 'T'},
 
   {"help", no_argument, 0, 'h'},
   
@@ -308,6 +310,14 @@ int main(int argc, char *argv[])
       }
       break;
 
+    case 'T':
+      skip = atoi(optarg);
+      if (skip < 0) {
+	fprintf(stderr, "error: thin must be positive\n");
+	return -1;
+      }
+      break;
+
     default:
       fprintf(stderr, "unknown option %c\n", c);
     case 'h':
@@ -527,46 +537,97 @@ static bool invert(DispersionData &data_love,
   step[0] = new SimpleStep();
   step[1] = new QuasiNewton();
     
-  double like_love = likelihood_love(data_love,
-				     model,
-				     reference,
-				     damping,
-				     posterior,
-				     mesh,
-				     love,
-				     dkdp_love,
-				     dUdp_love,
-				     dLdp_love,
-				     G_love,
-				     residuals_love,
-				     Cd_love,
-				     threshold,
-				     order,
-				     highorder,
-				     boundaryorder,
-				     scale,
-				     frequency_thin);
+  double like_love;
+  double like_rayleigh;
 
-  double like_rayleigh = likelihood_rayleigh(data_rayleigh,
-					     model,
-					     reference,
-					     damping,
-					     posterior,
-					     mesh,
-					     rayleigh,
-					     dkdp_rayleigh,
-					     dUdp_rayleigh,
-					     dLdp_rayleigh,
-					     G_rayleigh,
-					     residuals_rayleigh,
-					     Cd_rayleigh,
-					     threshold,
-					     order,
-					     highorder,
-					     boundaryorder,
-					     scale,
-					     frequency_thin);
+  if (skip <= 1) {
 
+    like_love = likelihood_love(data_love,
+				model,
+				reference,
+				damping,
+				posterior,
+				mesh,
+				love,
+				dkdp_love,
+				dUdp_love,
+				dLdp_love,
+				G_love,
+				residuals_love,
+				Cd_love,
+				threshold,
+				order,
+				highorder,
+				boundaryorder,
+				scale,
+				frequency_thin);
+    
+    like_rayleigh = likelihood_rayleigh(data_rayleigh,
+					model,
+					reference,
+					damping,
+					posterior,
+					mesh,
+					rayleigh,
+					dkdp_rayleigh,
+					dUdp_rayleigh,
+					dLdp_rayleigh,
+					G_rayleigh,
+					residuals_rayleigh,
+					Cd_rayleigh,
+					threshold,
+					order,
+					highorder,
+					boundaryorder,
+					scale,
+					frequency_thin);
+  } else {
+
+    like_love = likelihood_love_bessel_spline(data_love,
+					      model,
+					      reference,
+					      damping,
+					      false,
+					      mesh,
+					      love,
+					      dkdp_love,
+					      dUdp_love,
+					      dLdp_love,
+					      G_love,
+					      Gk_love,
+					      GU_love,
+					      residuals_love,
+					      Cd_love,
+					      threshold,
+					      order,
+					      highorder,
+					      boundaryorder,
+					      scale,
+					      skip);
+    
+    like_rayleigh = likelihood_rayleigh_bessel_spline(data_rayleigh,
+						      model,
+						      reference,
+						      damping,
+						      false,
+						      mesh,
+						      rayleigh,
+						      dkdp_rayleigh,
+						      dUdp_rayleigh,
+						      dLdp_rayleigh,
+						      G_rayleigh,
+						      Gk_rayleigh,
+						      GU_rayleigh,
+						      residuals_rayleigh,
+						      Cd_rayleigh,
+						      threshold,
+						      order,
+						      highorder,
+						      boundaryorder,
+						      scale,
+						      skip);
+  }
+    
   double like = like_love + like_rayleigh;
   printf("init: %16.9e\n", like);
   double last_like = like;
