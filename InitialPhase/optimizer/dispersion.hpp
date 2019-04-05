@@ -77,6 +77,7 @@ public:
     target_phase.resize(freq.size());
     target_error.resize(freq.size());
 
+    predicted_k.resize(freq.size());
     predicted_phase.resize(freq.size());
     predicted_group.resize(freq.size());
     
@@ -234,6 +235,7 @@ public:
   fftw_complex *fullspec;
   fftw_complex *fullenv;
 
+  std::vector<double> predicted_k;
   std::vector<double> predicted_group;
   std::vector<double> predicted_phase;
 

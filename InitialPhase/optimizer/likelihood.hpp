@@ -166,6 +166,9 @@ void spline_fill(int offset, int i0, int i1,
 				   dC * data.predicted_k[i1]/affine +
 				   dD/data.predicted_group[i1]);
 
+    double u20 = data.predicted_group[i0] * data.predicted_group[i0];
+    double u21 = data.predicted_group[i1] * data.predicted_group[i1];
+
     double weight = -(omega)/(data.predicted_k[i]*data.predicted_k[i]);
 
     /*
@@ -242,19 +245,19 @@ double likelihood_love_spline(DispersionData &data,
     for (i = data.flast; i >= data.ffirst; i -= skip) {
 
       double weight;
-      double k = love_bessel_compute(data,
-				     i,
-				     model,
-				     mesh,
-				     love,
-				     dkdp,
-				     dUdp,
-				     threshold,
-				     order,
-				     highorder,
-				     boundaryorder,
-				     autoscale, 
-				     weight);
+      double k = love_phase_compute(data,
+				    i,
+				    model,
+				    mesh,
+				    love,
+				    dkdp,
+				    dUdp,
+				    threshold,
+				    order,
+				    highorder,
+				    boundaryorder,
+				    autoscale, 
+				    weight);
 
       if (k == 0.0) {
 	return 0.0;
@@ -305,19 +308,19 @@ double likelihood_love_spline(DispersionData &data,
       i = data.ffirst;
       
       double weight;
-      double k = love_bessel_compute(data,
-				     i,
-				     model,
-				     mesh,
-				     love,
-				     dkdp,
-				     dUdp,
-				     threshold,
-				     order,
-				     highorder,
-				     boundaryorder,
-				     autoscale, 
-				     weight);
+      double k = love_phase_compute(data,
+				    i,
+				    model,
+				    mesh,
+				    love,
+				    dkdp,
+				    dUdp,
+				    threshold,
+				    order,
+				    highorder,
+				    boundaryorder,
+				    autoscale, 
+				    weight);
 
       if (k == 0.0) {
 	return 0.0;
@@ -557,19 +560,19 @@ double likelihood_love(DispersionData &data,
   return like;
 }
 
-double rayleigh_bessel_compute(DispersionData &data,
-			       int i,
-			       model_t &model,
-			       mesh_t &mesh,
-			       rayleighsolver_t &rayleigh,
-			       Spec1DMatrix<double> &dkdp,
-			       Spec1DMatrix<double> &dUdp,
-			       double threshold,
-			       int order,
-			       int highorder,
-			       int boundaryorder,
-			       double scale, 
-			       double &weight) // out dGm/dm weight for d likelihood/dm)
+double rayleigh_phase_compute(DispersionData &data,
+			      int i,
+			      model_t &model,
+			      mesh_t &mesh,
+			      rayleighsolver_t &rayleigh,
+			      Spec1DMatrix<double> &dkdp,
+			      Spec1DMatrix<double> &dUdp,
+			      double threshold,
+			      int order,
+			      int highorder,
+			      int boundaryorder,
+			      double scale, 
+			      double &weight) // out dGm/dm weight for d likelihood/dm)
 {
   if (threshold <= 0.0) {
     
@@ -645,24 +648,7 @@ double rayleigh_bessel_compute(DispersionData &data,
   data.predicted_phase[i] = c_pred;
   data.predicted_group[i] = U_pred;
   
-  double pJ0 = gsl_sf_bessel_J0(k * data.distkm * 1.0e3);
-  double pJ1 = gsl_sf_bessel_J1(k * data.distkm * 1.0e3);
-  double pY0 = gsl_sf_bessel_Y0(k * data.distkm * 1.0e3);
-  double pY1 = gsl_sf_bessel_Y1(k * data.distkm * 1.0e3);
-      
-  data.predicted_bessel[i] = pJ0;
-  
-  double benv2 = pJ0*pJ0 + pY0*pY0;
-  double benv = sqrt(benv2);
-  double s = data.predicted_envelope[i]/benv;
-  data.predicted_realspec[i] = s * data.predicted_bessel[i];
-      
-  
-  double dpbdk = data.predicted_envelope[i] *
-    (- (pJ1 * data.distkm * 1.0e3)/benv
-     - (pJ0*(pJ0*pJ1 + pY0*pY1) * data.distkm * 1.0e3)/(benv2*benv));
-  
-  weight = dpbdk;
+  weight = -(omega/(k*k));
   
   return k;
 }
@@ -724,19 +710,19 @@ double likelihood_rayleigh_spline(DispersionData &data,
     for (i = data.flast; i >= data.ffirst; i -= skip) {
 
       double weight;
-      double k = rayleigh_bessel_compute(data,
-					 i,
-					 model,
-					 mesh,
-					 rayleigh,
-					 dkdp,
-					 dUdp,
-					 threshold,
-					 order,
-					 highorder,
-					 boundaryorder,
-					 autoscale, 
-					 weight);
+      double k = rayleigh_phase_compute(data,
+					i,
+					model,
+					mesh,
+					rayleigh,
+					dkdp,
+					dUdp,
+					threshold,
+					order,
+					highorder,
+					boundaryorder,
+					autoscale, 
+					weight);
 
       if (k == 0.0) {
 	return 0.0;
@@ -790,20 +776,20 @@ double likelihood_rayleigh_spline(DispersionData &data,
       i = data.ffirst;
       
       double weight;
-      double k = rayleigh_bessel_compute(data,
-					 i,
-					 model,
-					 mesh,
-					 rayleigh,
-					 dkdp,
-					 dUdp,
-					 threshold,
-					 order,
-					 highorder,
-					 boundaryorder,
-					 autoscale, 
-					 weight);
-
+      double k = rayleigh_phase_compute(data,
+					i,
+					model,
+					mesh,
+					rayleigh,
+					dkdp,
+					dUdp,
+					threshold,
+					order,
+					highorder,
+					boundaryorder,
+					autoscale, 
+					weight);
+      
       if (k == 0.0) {
 	return 0.0;
       }
@@ -837,9 +823,9 @@ double likelihood_rayleigh_spline(DispersionData &data,
     //
     for (i = data.flast; i >= data.ffirst; i --) {
 
-      double t_pred = data.predicted_realspec[i];
-      double err = t_pred - data.ncfreal[i];
-      double denom = data.noise_sigma * data.noise_sigma;
+      double t_pred = data.predicted_phase[i];
+      double err = t_pred - data.target_phase[i];
+      double denom = data.target_error[i] * data.target_error[i];
       double L = err*err/(2.0 * denom);
       double normed_residual = err/denom;
 

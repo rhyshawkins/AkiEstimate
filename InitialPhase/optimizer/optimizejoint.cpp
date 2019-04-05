@@ -69,7 +69,8 @@ static bool invert(DispersionData &data_love,
                    double epsilon,
                    int maxiterations,
                    double likelihood_threshold,
-		   int mode);
+		   int mode,
+		   int skip);
 
 int main(int argc, char *argv[])
 {
@@ -109,6 +110,8 @@ int main(int argc, char *argv[])
   bool write_ftan;
 
   int mode;
+
+  int skip;
 
   //
   // Defaults
@@ -152,6 +155,8 @@ int main(int argc, char *argv[])
   write_ftan = false;
 
   mode = 0;
+
+  skip = 0;
   
   //
   // Command line parameters
@@ -428,7 +433,8 @@ int main(int argc, char *argv[])
 	      epsilon,
 	      maxiterations,
 	      0.0,
-	      mode)) {
+	      mode,
+	      skip)) {
     fprintf(stderr, "error: failed to invert\n");
     return -1;
   }
@@ -501,12 +507,15 @@ static bool invert(DispersionData &data_love,
                    double _epsilon,
                    int maxiterations,
                    double likelihood_threshold,
-		   int mode)
+		   int mode,
+		   int skip)
 {
   Spec1DMatrix<double> dkdp_love;
   Spec1DMatrix<double> dUdp_love;
   Spec1DMatrix<double> dLdp_love;
   Spec1DMatrix<double> G_love;
+  Spec1DMatrix<double> Gk_love;
+  Spec1DMatrix<double> GU_love;
   Spec1DMatrix<double> residuals_love;
   Spec1DMatrix<double> Cd_love;
 
@@ -514,6 +523,8 @@ static bool invert(DispersionData &data_love,
   Spec1DMatrix<double> dUdp_rayleigh;
   Spec1DMatrix<double> dLdp_rayleigh;
   Spec1DMatrix<double> G_rayleigh;
+  Spec1DMatrix<double> Gk_rayleigh;
+  Spec1DMatrix<double> GU_rayleigh;
   Spec1DMatrix<double> residuals_rayleigh;
   Spec1DMatrix<double> Cd_rayleigh;
 
@@ -583,49 +594,49 @@ static bool invert(DispersionData &data_love,
 					frequency_thin);
   } else {
 
-    like_love = likelihood_love_bessel_spline(data_love,
-					      model,
-					      reference,
-					      damping,
-					      false,
-					      mesh,
-					      love,
-					      dkdp_love,
-					      dUdp_love,
-					      dLdp_love,
-					      G_love,
-					      Gk_love,
-					      GU_love,
-					      residuals_love,
-					      Cd_love,
-					      threshold,
-					      order,
-					      highorder,
-					      boundaryorder,
-					      scale,
-					      skip);
+    like_love = likelihood_love_spline(data_love,
+				       model,
+				       reference,
+				       damping,
+				       false,
+				       mesh,
+				       love,
+				       dkdp_love,
+				       dUdp_love,
+				       dLdp_love,
+				       G_love,
+				       Gk_love,
+				       GU_love,
+				       residuals_love,
+				       Cd_love,
+				       threshold,
+				       order,
+				       highorder,
+				       boundaryorder,
+				       scale,
+				       skip);
     
-    like_rayleigh = likelihood_rayleigh_bessel_spline(data_rayleigh,
-						      model,
-						      reference,
-						      damping,
-						      false,
-						      mesh,
-						      rayleigh,
-						      dkdp_rayleigh,
-						      dUdp_rayleigh,
-						      dLdp_rayleigh,
-						      G_rayleigh,
-						      Gk_rayleigh,
-						      GU_rayleigh,
-						      residuals_rayleigh,
-						      Cd_rayleigh,
-						      threshold,
-						      order,
-						      highorder,
-						      boundaryorder,
-						      scale,
-						      skip);
+    like_rayleigh = likelihood_rayleigh_spline(data_rayleigh,
+					       model,
+					       reference,
+					       damping,
+					       false,
+					       mesh,
+					       rayleigh,
+					       dkdp_rayleigh,
+					       dUdp_rayleigh,
+					       dLdp_rayleigh,
+					       G_rayleigh,
+					       Gk_rayleigh,
+					       GU_rayleigh,
+					       residuals_rayleigh,
+					       Cd_rayleigh,
+					       threshold,
+					       order,
+					       highorder,
+					       boundaryorder,
+					       scale,
+					       skip);
   }
     
   double like = like_love + like_rayleigh;
