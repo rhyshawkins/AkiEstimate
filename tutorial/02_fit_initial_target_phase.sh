@@ -10,7 +10,9 @@ VS=0.5e3
 XI=0.05
 VPVS=0.05
 
-../InitialPhase/optimizer/optimizejoint \
+SKIP=10
+
+gdb --args ../InitialPhase/optimizer/optimizejoint \
     -i ../example_data/LoveResponse/dispersion_${STATIONPAIR}.txt \
     -I ../example_data/LoveResponse/dispersion_${STATIONPAIR}.txt \
     -c InitialPhase/phase_${STATIONPAIR}.love \
@@ -24,7 +26,8 @@ VPVS=0.05
     -X $XI \
     -S $VPVS \
     -M 0 -A 0.05 \
-    -N 1 \
-    -e 1.0
+    -N 10 \
+    -e 1.0 \
+    -T $SKIP
 
 

@@ -525,6 +525,8 @@ double likelihood_love_bessel_spline(DispersionData &data,
 	
       }
 
+      residual(datai, 0) = err;
+      Cd(datai, 0) = denom;
       like += L;
     }
   }
@@ -1176,6 +1178,8 @@ double likelihood_rayleigh_bessel_spline(DispersionData &data,
 	
       }
 
+      residual(datai, 0) = err;
+      Cd(datai, 0) = denom;
       like += L;
     }
   }

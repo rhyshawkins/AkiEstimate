@@ -62,6 +62,10 @@ public:
       double dp = dLdp(i, 0) * gradient_scale[j];
 
       proposed_model(i, 0) = current_model(i, 0) - dp;
+      if (isnan(proposed_model(i, 0))) {
+	fprintf(stderr, "error: new model parameter is NAN %16.9e %16.9e\n", dp, current_model(i, 0));
+	return false;
+      }
     }
 
     return true;

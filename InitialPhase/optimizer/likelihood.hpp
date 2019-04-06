@@ -283,6 +283,10 @@ double likelihood_love_spline(DispersionData &data,
       for (int j = 0; j < dkdp.rows(); j ++) {
 
 	G(idata, j) = weight * dkdp(j, 0);
+	if (isnan(G(idata, j))) {
+	  fprintf(stderr, "Love G nan\n");
+	  return 0.0;
+	}
 
 	Gk(idata, j) = dkdp(j, 0);
 	GU(idata, j) = dUdp(j, 0);
@@ -377,6 +381,8 @@ double likelihood_love_spline(DispersionData &data,
 	
       }
 
+      residual(datai, 0) = err;
+      Cd(datai, 0) = denom;
       like += L;
     }
   }
@@ -725,6 +731,7 @@ double likelihood_rayleigh_spline(DispersionData &data,
 					weight);
 
       if (k == 0.0) {
+	fprintf(stderr, "Failed to compute k\n");
 	return 0.0;
       }
 
@@ -748,6 +755,11 @@ double likelihood_rayleigh_spline(DispersionData &data,
       for (int j = 0; j < dkdp.rows(); j ++) {
 
 	G(idata, j) = weight * dkdp(j, 0);
+
+	if (isnan(G(idata, j))) {
+	  fprintf(stderr, "Rayleigh G nan\n");
+	  return 0.0;
+	}
 
 	Gk(idata, j) = dkdp(j, 0);
 	GU(idata, j) = dUdp(j, 0);
@@ -824,6 +836,11 @@ double likelihood_rayleigh_spline(DispersionData &data,
     for (i = data.flast; i >= data.ffirst; i --) {
 
       double t_pred = data.predicted_phase[i];
+      if (isnan(t_pred)) {
+	fprintf(stderr, "Predicted phase invalid\n");
+	return 0.0;
+      }
+      
       double err = t_pred - data.target_phase[i];
       double denom = data.target_error[i] * data.target_error[i];
       double L = err*err/(2.0 * denom);
@@ -845,6 +862,8 @@ double likelihood_rayleigh_spline(DispersionData &data,
 	
       }
 
+      residual(datai, 0) = err;
+      Cd(datai, 0) = denom;
       like += L;
     }
   }

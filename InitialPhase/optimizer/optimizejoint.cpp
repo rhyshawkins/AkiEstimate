@@ -720,63 +720,8 @@ static bool invert(DispersionData &data_love,
       // Recompute Likelihood
       //
       last_like = like;
-      
-      like_love = likelihood_love(data_love,
-				  model,
-				  reference,
-				  damping,
-				  posterior,
-				  mesh,
-				  love,
-				  dkdp_love,
-				  dUdp_love,
-				  dLdp_love,
-				  G_love,
-				  residuals_love,
-				  Cd_love,
-				  threshold,
-				  order,
-				  highorder,
-				  boundaryorder,
-				  scale,
-				  frequency_thin);
-      
-      like_rayleigh = likelihood_rayleigh(data_rayleigh,
-					  model,
-					  reference,
-					  damping,
-					  posterior,
-					  mesh,
-					  rayleigh,
-					  dkdp_rayleigh,
-					  dUdp_rayleigh,
-					  dLdp_rayleigh,
-					  G_rayleigh,
-					  residuals_rayleigh,
-					  Cd_rayleigh,
-					  threshold,
-					  order,
-					  highorder,
-					  boundaryorder,
-					  scale,
-					  frequency_thin);
-      
-      like = like_love + like_rayleigh;
-      
-      if (like > last_like) {
-	
-	if (epsilon[m] < EPSILON_MIN) {
-	  printf("%4d: Exiting\n", iterations);
-	  break;
-	}
-	
-	//
-	// Back track and recompute (a little inefficient here)
-	//
-	printf("%4d: Backtracking %16.9e %16.9e\n", iterations, like, last_like);
-	epsilon[m] *= 0.5;
-	LeastSquaresIterator::copy(model_v, model);
-	
+
+      if (skip <= 1) {
 	like_love = likelihood_love(data_love,
 				    model,
 				    reference,
@@ -816,7 +761,154 @@ static bool invert(DispersionData &data_love,
 					    boundaryorder,
 					    scale,
 					    frequency_thin);
+      } else {
+	like_love = likelihood_love_spline(data_love,
+					   model,
+					   reference,
+					   damping,
+					   false,
+					   mesh,
+					   love,
+					   dkdp_love,
+					   dUdp_love,
+					   dLdp_love,
+					   G_love,
+					   Gk_love,
+					   GU_love,
+					   residuals_love,
+					   Cd_love,
+					   threshold,
+					   order,
+					   highorder,
+					   boundaryorder,
+					   scale,
+					   skip);
 	
+	like_rayleigh = likelihood_rayleigh_spline(data_rayleigh,
+						   model,
+						   reference,
+						   damping,
+						   false,
+						   mesh,
+						   rayleigh,
+						   dkdp_rayleigh,
+						   dUdp_rayleigh,
+						   dLdp_rayleigh,
+						   G_rayleigh,
+						   Gk_rayleigh,
+						   GU_rayleigh,
+						   residuals_rayleigh,
+						   Cd_rayleigh,
+						   threshold,
+						   order,
+						   highorder,
+						   boundaryorder,
+						   scale,
+						   skip);
+      }	
+      
+      like = like_love + like_rayleigh;
+      
+      if (like > last_like) {
+	
+	if (epsilon[m] < EPSILON_MIN) {
+	  printf("%4d: Exiting\n", iterations);
+	  break;
+	}
+	
+	//
+	// Back track and recompute (a little inefficient here)
+	//
+	printf("%4d: Backtracking %16.9e %16.9e\n", iterations, like, last_like);
+	epsilon[m] *= 0.5;
+	LeastSquaresIterator::copy(model_v, model);
+
+	if (skip <= 1) {
+	  like_love = likelihood_love(data_love,
+				      model,
+				      reference,
+				      damping,
+				      posterior,
+				      mesh,
+				      love,
+				      dkdp_love,
+				      dUdp_love,
+				      dLdp_love,
+				      G_love,
+				      residuals_love,
+				      Cd_love,
+				      threshold,
+				      order,
+				      highorder,
+				      boundaryorder,
+				      scale,
+				      frequency_thin);
+	  
+	  like_rayleigh = likelihood_rayleigh(data_rayleigh,
+					      model,
+					      reference,
+					      damping,
+					      posterior,
+					      mesh,
+					      rayleigh,
+					      dkdp_rayleigh,
+					      dUdp_rayleigh,
+					      dLdp_rayleigh,
+					      G_rayleigh,
+					      residuals_rayleigh,
+					      Cd_rayleigh,
+					      threshold,
+					      order,
+					      highorder,
+					      boundaryorder,
+					      scale,
+					      frequency_thin);
+	} else {
+	like_love = likelihood_love_spline(data_love,
+					   model,
+					   reference,
+					   damping,
+					   false,
+					   mesh,
+					   love,
+					   dkdp_love,
+					   dUdp_love,
+					   dLdp_love,
+					   G_love,
+					   Gk_love,
+					   GU_love,
+					   residuals_love,
+					   Cd_love,
+					   threshold,
+					   order,
+					   highorder,
+					   boundaryorder,
+					   scale,
+					   skip);
+	
+	like_rayleigh = likelihood_rayleigh_spline(data_rayleigh,
+						   model,
+						   reference,
+						   damping,
+						   false,
+						   mesh,
+						   rayleigh,
+						   dkdp_rayleigh,
+						   dUdp_rayleigh,
+						   dLdp_rayleigh,
+						   G_rayleigh,
+						   Gk_rayleigh,
+						   GU_rayleigh,
+						   residuals_rayleigh,
+						   Cd_rayleigh,
+						   threshold,
+						   order,
+						   highorder,
+						   boundaryorder,
+						   scale,
+						   skip);
+	}
+	  
 	like = like_love + like_rayleigh;
       } else {
 	

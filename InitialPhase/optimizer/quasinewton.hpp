@@ -49,6 +49,12 @@ public:
       for (int j = 0; j < Nd; j ++) {
 
 	double s = G(j, i)/C_d(j, 0);
+
+	if (isnan(s)) {
+	  fprintf(stderr, "ComputeStep: invalid data Covariance(s): %16.9e %16.9e\n", G(j, i), C_d(j, 0));
+	  return false;
+	}
+	
 	gsl_matrix_set(GTCdinv, i, j, s);
 
       }
@@ -66,6 +72,11 @@ public:
 	if (i == j) {
 	  s = 1.0/C_m(i, 0);
 	}
+	if (isnan(s)) {
+	  fprintf(stderr, "ComputeStep: invalid model Covariance(s): %16.9e\n", C_m(i,0));
+	  return false;
+	}
+	
 	  
 	for (int k = 0; k < Nd; k ++) {
 	  s += gsl_matrix_get(GTCdinv, i, k) * G(k, j);
@@ -117,6 +128,11 @@ public:
     //
     for (int i = 0; i < Nm; i ++) {
       proposed_model(i, 0) = gsl_vector_get(mnp1, i);
+
+      if (isnan(proposed_model(i, 0))) {
+	fprintf(stderr, "ComputeStep: new model parameter is NAN\n");
+	return false;
+      }
       // printf("%2d %16.9e\n", i, proposed_model(i, 0));
     }
 
@@ -158,6 +174,12 @@ public:
       for (int j = 0; j < Nd_love; j ++) {
 
 	double s = G_love(j, i)/C_d_love(j, 0);
+	if (isnan(s)) {
+	  fprintf(stderr,
+		  "ComputeStep: invalid love data covariance(s): %16.9e\n",
+		  C_d_love(j, 0));
+	  return false;
+	}
 	gsl_matrix_set(GTCdinv, i, j, s);
 
       }
@@ -165,6 +187,13 @@ public:
       for (int j = 0; j < Nd_rayleigh; j ++) {
 
 	double s = G_rayleigh(j, i)/C_d_rayleigh(j, 0);
+	if (isnan(s)) {
+	  fprintf(stderr,
+		  "ComputeStep: invalid rayleigh data covariance(s): %16.9e\n",
+		  C_d_rayleigh(j, 0));
+	  return false;
+	}
+	
 	gsl_matrix_set(GTCdinv, i, Nd_love + j, s);
 
       }
@@ -182,13 +211,25 @@ public:
 	if (i == j) {
 	  s = 1.0/C_m(i, 0);
 	}
+	if (isnan(s)) {
+	  fprintf(stderr, "ComputeStep: invalid model covariance(s): %16.9e\n", C_m(i, 0));
+	  return false;
+	}
 	  
 	for (int k = 0; k < Nd_love; k ++) {
 	  s += gsl_matrix_get(GTCdinv, i, k) * G_love(k, j);
+	  if (isnan(G_love(k, j))) {
+	    fprintf(stderr, "ComputeStep: G_love invalid\n");
+	    return false;
+	  }
 	}
 
 	for (int k = 0; k < Nd_rayleigh; k ++) {
 	  s += gsl_matrix_get(GTCdinv, i, Nd_love + k) * G_rayleigh(k, j);
+	  if (isnan(G_rayleigh(k, j))) {
+	    fprintf(stderr, "ComputeStep: G_rayleigh invalid\n");
+	    return false;
+	  }
 	}
 
 	gsl_matrix_set(A, i, j, s);
