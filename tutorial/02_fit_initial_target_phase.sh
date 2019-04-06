@@ -10,9 +10,10 @@ VS=0.5e3
 XI=0.05
 VPVS=0.05
 
-SKIP=10
+SKIP=5
 
-gdb --args ../InitialPhase/optimizer/optimizejoint \
+#gdb --args 
+../InitialPhase/optimizer/optimizejoint \
     -i ../example_data/LoveResponse/dispersion_${STATIONPAIR}.txt \
     -I ../example_data/LoveResponse/dispersion_${STATIONPAIR}.txt \
     -c InitialPhase/phase_${STATIONPAIR}.love \
