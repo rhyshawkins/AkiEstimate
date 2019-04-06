@@ -1,0 +1,34 @@
+
+\documentclass{article}
+
+\begin{document}
+
+\title{Tutorial for Phase Estimation}
+\author{Rhys Hawkins}
+\maketitle
+
+\section{Introduction}
+
+This tutorial provides a worked example for estimating phase and group dispersion
+from ambient noise cross-correlations using the method described in
+
+\begin{flushleft}
+  Hawkins R. and Sambridge M., ``An adjoint technique for estimation of interstation phase and
+  group dispersion from ambient noise cross-correlations``, BSSA, 2019
+\end{flushleft}
+
+\section{Input File Format}
+
+The file format used by the programs here for observed ambient noise cross-correlations is
+a simple text file format with some meta information on the first two lines, followed by
+the noise correlation function and empirical Greens function in the frequency domain.
+
+\begin{verbatim}
+  -21.096394000    65.109688000   -16.650196000    65.054375000   209.155962184
+  2.000000 197    11.332828014     6.217725756 4097
+  0.000000  2.144090067e-02  0.000000000e+00  1.942721063e-03  0.000000000e+00
+  0.000244  2.136327242e-02 -2.339829045e-06  1.336357675e-02  7.392375819e-04
+\end{verbatim}
+
+\end{document}
+
