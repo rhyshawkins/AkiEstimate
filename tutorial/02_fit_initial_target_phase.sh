@@ -10,7 +10,7 @@ VS=0.5e3
 XI=0.05
 VPVS=0.05
 
-SKIP=5
+SKIP=20
 
 #gdb --args 
 ../InitialPhase/optimizer/optimizejoint \
@@ -27,7 +27,7 @@ SKIP=5
     -X $XI \
     -S $VPVS \
     -M 0 -A 0.05 \
-    -N 10 \
+    -N 30 \
     -e 1.0 \
     -T $SKIP
 

@@ -10,6 +10,8 @@ VS=0.5e3
 XI=0.05
 VPVS=0.05
 
+SKIP=20
+
 ../Phase/optimizer/optimizejoint \
     -i ../example_data/LoveResponse/dispersion_${STATIONPAIR}.txt \
     -I ../example_data/LoveResponse/dispersion_${STATIONPAIR}.txt \
@@ -25,6 +27,7 @@ VPVS=0.05
     -G 1.0 \
     -N 1 \
     -e 1.0 \
-    -J
+    -J \
+    -T $SKIP
 
 

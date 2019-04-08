@@ -8,7 +8,7 @@
 #include "simple.hpp"
 #include "quasinewton.hpp"
 
-static char short_options[] = "i:I:r:Jf:F:R:V:X:S:o:s:p:b:t:P:e:N:QG:M:W:h";
+static char short_options[] = "i:I:r:Jf:F:R:V:X:S:o:s:p:b:t:P:e:N:QG:M:W:T:h";
 static struct option long_options[] = {
   {"input-love", required_argument, 0, 'i'},
   {"input-rayleigh", required_argument, 0, 'I'},
@@ -41,7 +41,8 @@ static struct option long_options[] = {
   
   {"gaussian-smooth", required_argument, 0, 'G'},
   {"mode", required_argument, 0, 'M'},
-  {"sweeps", required_argument, 0, 'W'},
+
+  {"skip", required_argument, 0, 'T'},
   
   {"help", no_argument, 0, 'h'},
   
@@ -292,6 +293,14 @@ int main(int argc, char *argv[])
       mode = atoi(optarg);
       if (mode < 0 || mode > 1) {
 	fprintf(stderr, "error: mode must be 0 (simple gradient desc.) or 1 (q-newton)\n");
+	return -1;
+      }
+      break;
+
+    case 'T':
+      skip = atoi(optarg);
+      if (skip < 0) {
+	fprintf(stderr, "error: skip must be positive\n");
 	return -1;
       }
       break;
