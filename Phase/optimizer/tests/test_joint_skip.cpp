@@ -8,14 +8,12 @@
 #include "simple.hpp"
 #include "quasinewton.hpp"
 
-static char short_options[] = "i:I:r:Jf:F:R:V:X:S:o:s:p:b:t:P:e:N:QG:M:W:T:h";
+static char short_options[] = "i:I:r:f:F:R:V:X:S:o:s:p:b:t:P:G:T:h";
 static struct option long_options[] = {
   {"input-love", required_argument, 0, 'i'},
   {"input-rayleigh", required_argument, 0, 'I'},
   
   {"reference", required_argument, 0, 'r'},
-
-  {"jacobians", no_argument, 0, 'J'},
 
   {"fmin", required_argument, 0, 'f'},
   {"fmax", required_argument, 0, 'F'},
@@ -33,14 +31,7 @@ static struct option long_options[] = {
   {"threshold", required_argument, 0, 't'},
   {"high-order", required_argument, 0, 'P'},
 
-  {"nsteps", required_argument, 0, 'N'},
-  {"epsilon", required_argument, 0, 'e'},
-  {"damping", required_argument, 0, 'D'},
-
-  {"posterior", no_argument, 0, 'Q'},
-  
   {"gaussian-smooth", required_argument, 0, 'G'},
-  {"mode", required_argument, 0, 'M'},
 
   {"skip", required_argument, 0, 'T'},
   
@@ -56,7 +47,6 @@ static bool invert(DispersionData &data_love,
                    model_t &model,
                    model_t &reference,
                    const double *damping,
-                   bool posterior,
                    mesh_t &mesh,
                    lovesolver_t &love,
 		   rayleighsolver_t &rayleigh,
@@ -65,12 +55,8 @@ static bool invert(DispersionData &data_love,
                    double highorder,
                    double boundaryorder,
                    double scale,
-                   double epsilon,
-                   int maxiterations,
 		   const char *outputprefix,
-		   bool jacobians,
 		   double gaussian_smooth,
-		   int mode,
 		   int skip);
 
 int main(int argc, char *argv[])
@@ -89,22 +75,15 @@ int main(int argc, char *argv[])
   int boundaryorder;
   double scale;
 
-  int maxiterations;
-  double epsilon;
   double damping[4];
 
   double fmin;
   double fmax;
 
-  bool nodata;
-
-  bool jacobians;
-
   double noise_frequency;
 
   double gaussian_smooth;
 
-  int mode;
   int skip;
 
   //
@@ -125,23 +104,15 @@ int main(int argc, char *argv[])
   fmin = 1.0/40.0;
   fmax = 1.0/2.0;
   
-  maxiterations = 5;
-  epsilon = 1.0;
-
   damping[0] = 0.0;
   damping[1] = 0.0;
   damping[2] = 0.0;
   damping[3] = 0.0;
 
-  nodata = false;
-
-  jacobians = false;
-  
   noise_frequency = 0.5;
 
   gaussian_smooth = 0.0;
 
-  mode = 0;
   skip = 0;
   
   //
@@ -169,10 +140,6 @@ int main(int argc, char *argv[])
       reference_file = optarg;
       break;
 
-    case 'J':
-      jacobians = true;
-      break;
-      
     case 'o':
       output_file = optarg;
       break;
@@ -261,38 +228,10 @@ int main(int argc, char *argv[])
       }
       break;
 
-    case 'N':
-      maxiterations = atoi(optarg);
-      if (maxiterations < 1) {
-        fprintf(stderr, "error: need at least one iteration\n");
-        return -1;
-      }
-      break;
-
-    case 'e':
-      epsilon = atof(optarg);
-      if (epsilon <= 0.0) {
-        fprintf(stderr, "error: epsilon must be positive\n"); 
-        return -1;
-      }
-      break;
-
-    case 'Q':
-      nodata = true;
-      break;
-
     case 'G':
       gaussian_smooth = atof(optarg);
       if (gaussian_smooth < 0.0) {
 	fprintf(stderr, "error: gaussian smooth must be 0 or greater\n");
-	return -1;
-      }
-      break;
-
-    case 'M':
-      mode = atoi(optarg);
-      if (mode < 0 || mode > 1) {
-	fprintf(stderr, "error: mode must be 0 (simple gradient desc.) or 1 (q-newton)\n");
 	return -1;
       }
       break;
@@ -373,7 +312,6 @@ int main(int argc, char *argv[])
 	      reference.model,
 	      reference.reference,
 	      damping,
-	      nodata,
 	      mesh,
 	      love,
 	      rayleigh,
@@ -382,46 +320,10 @@ int main(int argc, char *argv[])
 	      highorder,
 	      boundaryorder,
 	      scale,
-	      epsilon,
-	      maxiterations,
 	      output_file,
-	      jacobians,
 	      gaussian_smooth,
-	      mode,
 	      skip)) {
     fprintf(stderr, "error: failed to invert\n");
-    return -1;
-  }
-  
-  char filename[1024];
-  
-  //
-  // Save model
-  //
-  sprintf(filename, "%s.model", output_file);
-  if (!reference.model.save(filename)) {
-    fprintf(stderr, "error: failed to save model\n");
-    return -1;
-  }
-  
-  //
-  // Save residuals
-  //
-  
-  
-  
-  //
-  // Save predictions
-  //
-  sprintf(filename, "%s.pred-love", output_file);
-  if (!data_love.save_predictions(filename)) {
-    fprintf(stderr, "error: failed to save predictions\n");
-    return -1;
-  }
-
-  sprintf(filename, "%s.pred-rayleigh", output_file);
-  if (!data_rayleigh.save_predictions(filename)) {
-    fprintf(stderr, "error: failed to save predictions\n");
     return -1;
   }
   
@@ -449,7 +351,6 @@ static bool invert(DispersionData &data_love,
                    model_t &model,
                    model_t &reference,
                    const double *damping,
-                   bool posterior,
                    mesh_t &mesh,
                    lovesolver_t &love,
 		   rayleighsolver_t &rayleigh,
@@ -458,12 +359,8 @@ static bool invert(DispersionData &data_love,
                    double highorder,
                    double boundaryorder,
                    double scale,
-                   double _epsilon,
-                   int maxiterations,
 		   const char *output_prefix,
-		   bool jacobians,
 		   double gaussian_smooth,
-		   int mode,
 		   int skip)
 {
   Spec1DMatrix<double> dkdp_love;
@@ -490,18 +387,6 @@ static bool invert(DispersionData &data_love,
   Spec1DMatrix<double> model_0;
   Spec1DMatrix<double> Cm;
 
-  double epsilon[2];
-  LeastSquaresIterator *step[2];
-
-  double PRIOR_MIN[4] = {0.1e3, 0.5e3, 0.5, 1.0};
-  double PRIOR_MAX[4] = {8.0e3, 10.0e3, 1.5, 2.5};
-
-  epsilon[0] = _epsilon;
-  epsilon[1] = _epsilon/8.0;
-
-  step[0] = new SimpleStep();
-  step[1] = new QuasiNewton();
-
   double frequency_thin = 0.0; // not used
 
   //
@@ -512,13 +397,15 @@ static bool invert(DispersionData &data_love,
 
   double like_love;
   double like_rayleigh;
+
+  char filename[1024];
   
   if (skip <= 1) {
     like_love = likelihood_love_bessel(data_love,
 				       model,
 				       reference,
 				       damping,
-				       posterior,
+				       false,
 				       mesh,
 				       love,
 				       dkdp_love,
@@ -538,7 +425,7 @@ static bool invert(DispersionData &data_love,
 					       model,
 					       reference,
 					       damping,
-					       posterior,
+					       false,
 					       mesh,
 					       rayleigh,
 					       dkdp_rayleigh,
@@ -601,483 +488,113 @@ static bool invert(DispersionData &data_love,
   }
     
 
+  //
+  // Save Likelihood
+  //
+  sprintf(filename, "%s.like", output_prefix);
+  FILE *fp = fopen(filename, "w");
+  if (fp == NULL) {
+    fprintf(stderr, "error: failed to save likelihood\n");
+    return false;
+  }
+  
   double like = like_love + like_rayleigh;
-  printf("init: %16.9e\n", like);
-  double last_like = like;
+  fprintf(fp, "%16.9e %16.9e %16.9e\n", like, like_love, like_rayleigh);
 
   //
-  // Save initial predictions
+  // Save predictions
   //
-  char filename[1024];
-  sprintf(filename, "%s.initpred-love", output_prefix);
+  sprintf(filename, "%s.pred-love", output_prefix);
   if (!data_love.save_predictions(filename)) {
     fprintf(stderr, "error: failed to save initial predictions\n");
     return false;
   }
 
-  sprintf(filename, "%s.initpred-rayleigh", output_prefix);
+  sprintf(filename, "%s.pred-rayleigh", output_prefix);
   if (!data_rayleigh.save_predictions(filename)) {
     fprintf(stderr, "error: failed to save initial predictions\n");
     return false;
   }
-  
-  //
-  // Resize vectors/matrices G will be filled appropriately by likelihood
-  // and will be correct size.
-  //
-  size_t nparam = G_love.cols();
 
   //
-  // Diagonal model covariance matrices
+  // Save G matrix
   //
-  Cm.resize(nparam, 1);
-  LeastSquaresIterator::initialize_Cm(model, damping, Cm);
-  
-  //
-  // Model vectors
-  //
-  model_mask.resize(nparam, 1);
-  model_0.resize(nparam, 1);
-  model_v.resize(nparam, 1);
-  model_v_proposed.resize(nparam, 1);
-
-  LeastSquaresIterator::copy(reference, model_0, model_mask);
-
-  int iterations = 0;
-
-  do {
-      
-    //
-    // First copy parameters to model vector
-    //
-    LeastSquaresIterator::copy(model, model_v, model_mask);
-
-    for (size_t i = 0; i < nparam; i ++) {
-      dLdp_love(i, 0) += dLdp_rayleigh(i, 0);
-    }
-
-    int m = 0; //iterations % 2;
-    bool valid = false;
-
-    do {
-      if (!step[m]->ComputeStepJoint(epsilon[m],
-				     Cd_love,
-				     Cd_rayleigh,
-				     Cm,
-				     residuals_love,
-				     residuals_rayleigh,
-				     G_love,
-				     G_rayleigh,
-				     dLdp_love,
-				     model_mask,
-				     model_v,
-				     model_0,
-				     model_v_proposed)) {
-	fprintf(stderr, "error: failed to compute step\n");
-	return false;
-      }
-
-      valid = LeastSquaresIterator::validate(model_v_proposed, model_mask,
-					     PRIOR_MIN,
-					     PRIOR_MAX);
-      if (!valid) {
-
-	if (epsilon[m] < EPSILON_MIN) {
-	  printf("%4d: Prior violation exit\n", iterations);
-	  break;
-	}
-	
-	epsilon[m] *= 0.5;
-      }
-    } while (!valid);
-
-      
-    if (valid) {
-      LeastSquaresIterator::copy(model_v_proposed, model);
-      //
-      // Recompute Likelihood
-      //
-      last_like = like;
-
-      if (skip <= 1) {
-	like_love = likelihood_love_bessel(data_love,
-					   model,
-					   reference,
-					   damping,
-					   posterior,
-					   mesh,
-					   love,
-					   dkdp_love,
-					   dUdp_love,
-					   dLdp_love,
-					   G_love,
-					   residuals_love,
-					   Cd_love,
-					   threshold,
-					   order,
-					   highorder,
-					   boundaryorder,
-					   scale,
-					   frequency_thin);
-	
-	like_rayleigh = likelihood_rayleigh_bessel(data_rayleigh,
-						   model,
-						   reference,
-						   damping,
-						   posterior,
-						   mesh,
-						   rayleigh,
-						   dkdp_rayleigh,
-						   dUdp_rayleigh,
-						   dLdp_rayleigh,
-						   G_rayleigh,
-						   residuals_rayleigh,
-						   Cd_rayleigh,
-						   threshold,
-						   order,
-						   highorder,
-						   boundaryorder,
-						   scale,
-						   frequency_thin);
-
-      } else {
-	like_love = likelihood_love_bessel_spline(data_love,
-						  model,
-						  reference,
-						  damping,
-						  posterior,
-						  mesh,
-						  love,
-						  dkdp_love,
-						  dUdp_love,
-						  dLdp_love,
-						  G_love,
-						  Gk_love,
-						  GU_love,
-						  residuals_love,
-						  Cd_love,
-						  threshold,
-						  order,
-						  highorder,
-						  boundaryorder,
-						  scale,
-						  skip);
-	
-	like_rayleigh = likelihood_rayleigh_bessel_spline(data_rayleigh,
-							  model,
-							  reference,
-							  damping,
-							  posterior,
-							  mesh,
-							  rayleigh,
-							  dkdp_rayleigh,
-							  dUdp_rayleigh,
-							  dLdp_rayleigh,
-							  G_rayleigh,
-							  Gk_rayleigh,
-							  GU_rayleigh,
-							  residuals_rayleigh,
-							  Cd_rayleigh,
-							  threshold,
-							  order,
-							  highorder,
-							  boundaryorder,
-							  scale,
-							  skip);
-	
-      }
-      
-      like = like_love + like_rayleigh;
-      
-      if (like > last_like) {
-	
-	//
-	// Back track and recompute (a little inefficient here)
-	//
-	printf("%4d: Backtracking %16.9e %16.9e\n", iterations, like, last_like);
-	
-	LeastSquaresIterator::copy(model_v, model);
-
-	if (skip <= 1) {
-	  like_love = likelihood_love_bessel(data_love,
-					     model,
-					     reference,
-					     damping,
-					     posterior,
-					     mesh,
-					     love,
-					     dkdp_love,
-					     dUdp_love,
-					     dLdp_love,
-					     G_love,
-					     residuals_love,
-					     Cd_love,
-					     threshold,
-					     order,
-					     highorder,
-					     boundaryorder,
-					     scale,
-					     frequency_thin);
-	  
-	  like_rayleigh = likelihood_rayleigh_bessel(data_rayleigh,
-						     model,
-						     reference,
-						     damping,
-						     posterior,
-						     mesh,
-						     rayleigh,
-						     dkdp_rayleigh,
-						     dUdp_rayleigh,
-						     dLdp_rayleigh,
-						     G_rayleigh,
-						     residuals_rayleigh,
-						     Cd_rayleigh,
-						     threshold,
-						     order,
-						     highorder,
-						     boundaryorder,
-						     scale,
-						     frequency_thin);
-	  
-	} else {
-	  like_love = likelihood_love_bessel_spline(data_love,
-						    model,
-						    reference,
-						    damping,
-						    posterior,
-						    mesh,
-						    love,
-						    dkdp_love,
-						    dUdp_love,
-						    dLdp_love,
-						    G_love,
-						    Gk_love,
-						    GU_love,
-						    residuals_love,
-						    Cd_love,
-						    threshold,
-						    order,
-						    highorder,
-						    boundaryorder,
-						    scale,
-						    skip);
-	  
-	  like_rayleigh = likelihood_rayleigh_bessel_spline(data_rayleigh,
-							    model,
-							    reference,
-							    damping,
-							    posterior,
-							    mesh,
-							    rayleigh,
-							    dkdp_rayleigh,
-							    dUdp_rayleigh,
-							    dLdp_rayleigh,
-							    G_rayleigh,
-							    Gk_rayleigh,
-							    GU_rayleigh,
-							    residuals_rayleigh,
-							    Cd_rayleigh,
-							    threshold,
-							    order,
-							    highorder,
-							    boundaryorder,
-							    scale,
-							    skip);
-	}	
-	
-	like = like_love + like_rayleigh;
-	
-	if (epsilon[m] < EPSILON_MIN) {
-	  printf("%4d: Exiting\n", iterations);
-	  break;
-	}
-	
-	epsilon[m] *= 0.5;
-	
-      } else {
-	
-	printf("%4d: %16.9e %16.9e\n", iterations, like, epsilon[m]);
-	
-	iterations ++;
-      }
-    } else {
-
-      break;
-
-    }
-    
-  } while (iterations < maxiterations);
-
-  if (jacobians) {
-    //
-    // Write matrices etc for posterior covariance: Cd Cm G 
-    //
-    char filename[1024];
-    FILE *fp;
-    
-    sprintf(filename, "%s.love_G", output_prefix);
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-      fprintf(stderr, "error: failed to create %s\n", filename);
-      return false;
-    }
-    for (int i = 0; i < G_love.rows(); i ++) {
-      for (int j = 0; j < G_love.cols(); j ++) {
-	fprintf(fp, "%16.9e ", G_love(i, j));
-      }
-      fprintf(fp, "\n");
-    }
-    fclose(fp);
-
-    sprintf(filename, "%s.love_Cd", output_prefix);
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-      fprintf(stderr, "error: failed to create %s\n", filename);
-      return false;
-    }
-    for (int i = 0; i < Cd_love.rows(); i ++) {
-      fprintf(fp, "%16.9e\n ", Cd_love(i, 0));
-    }
-    fclose(fp);
-
-    sprintf(filename, "%s.rayleigh_G", output_prefix);
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-      fprintf(stderr, "error: failed to create %s\n", filename);
-      return false;
-    }
-    for (int i = 0; i < G_rayleigh.rows(); i ++) {
-      for (int j = 0; j < G_rayleigh.cols(); j ++) {
-	fprintf(fp, "%16.9e", G_rayleigh(i, j));
-      }
-      fprintf(fp, "\n");
-    }
-    fclose(fp);
-
-    sprintf(filename, "%s.rayleigh_Cd", output_prefix);
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-      fprintf(stderr, "error: failed to create %s\n", filename);
-      return false;
-    }
-    for (int i = 0; i < Cd_rayleigh.rows(); i ++) {
-      fprintf(fp, "%16.9e\n", Cd_rayleigh(i, 0));
-    }
-    fclose(fp);
-    
-    
-    sprintf(filename, "%s.Cm", output_prefix);
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-      fprintf(stderr, "error: failed to create %s\n", filename);
-      return false;
-    }
-    for (int i = 0; i < Cm.rows(); i ++) {
-      fprintf(fp, "%16.9e\n", Cm(i, 0));
-    }
-    fclose(fp);
-
-
-    Spec1DMatrix<double> Jc, JU;
-    if (!love_jacobian(data_love,
-		       model,
-		       reference,
-		       damping,
-		       mesh,
-		       love,
-		       dkdp_love,
-		       dUdp_love,
-		       Jc,
-		       JU,
-		       threshold,
-		       order,
-		       highorder,
-		       boundaryorder,
-		       scale,
-		       frequency_thin)) {
-      fprintf(stderr, "error: failed to compute love jacobians\n");
-      return false;
-    }
-
-    sprintf(filename, "%s.love_Jc", output_prefix);
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-      fprintf(stderr, "error: failed to create %s\n", filename);
-      return false;
-    }
-    for (int i = 0; i < Jc.rows(); i ++) {
-      for (int j = 0; j < Jc.cols(); j ++) {
-	fprintf(fp, "%16.9e ", Jc(i, j));
-      }
-      fprintf(fp, "\n");
-    }
-    fclose(fp);
-    
-    sprintf(filename, "%s.love_JU", output_prefix);
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-      fprintf(stderr, "error: failed to create %s\n", filename);
-      return false;
-    }
-    for (int i = 0; i < JU.rows(); i ++) {
-      for (int j = 0; j < JU.cols(); j ++) {
-	fprintf(fp, "%16.9e ", JU(i, j));
-      }
-      fprintf(fp, "\n");
-    }
-    fclose(fp);
-
-    if (!rayleigh_jacobian(data_rayleigh,
-			   model,
-			   reference,
-			   damping,
-			   mesh,
-			   rayleigh,
-			   dkdp_rayleigh,
-			   dUdp_rayleigh,
-			   Jc,
-			   JU,
-			   threshold,
-			   order,
-			   highorder,
-			   boundaryorder,
-			   scale,
-			   frequency_thin)) {
-      fprintf(stderr, "error: failed to compute rayleigh jacobians\n");
-      return false;
-    }
-
-    sprintf(filename, "%s.rayleigh_Jc", output_prefix);
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-      fprintf(stderr, "error: failed to create %s\n", filename);
-      return false;
-    }
-    for (int i = 0; i < Jc.rows(); i ++) {
-      for (int j = 0; j < Jc.cols(); j ++) {
-	fprintf(fp, "%16.9e ", Jc(i, j));
-      }
-      fprintf(fp, "\n");
-    }
-    fclose(fp);
-    
-    sprintf(filename, "%s.rayleigh_JU", output_prefix);
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-      fprintf(stderr, "error: failed to create %s\n", filename);
-      return false;
-    }
-    for (int i = 0; i < JU.rows(); i ++) {
-      for (int j = 0; j < JU.cols(); j ++) {
-	fprintf(fp, "%16.9e ", JU(i, j));
-      }
-      fprintf(fp, "\n");
-    }
-    fclose(fp);
-    
+  sprintf(filename, "%s.love_G", output_prefix);
+  fp = fopen(filename, "w");
+  if (fp == NULL) {
+    fprintf(stderr, "error: failed to create %s\n", filename);
+    return false;
   }
+  for (int i = 0; i < G_love.rows(); i ++) {
+    for (int j = 0; j < G_love.cols(); j ++) {
+      fprintf(fp, "%16.9e ", G_love(i, j));
+    }
+    fprintf(fp, "\n");
+  }
+  fclose(fp);
   
+  sprintf(filename, "%s.love_Cd", output_prefix);
+  fp = fopen(filename, "w");
+  if (fp == NULL) {
+    fprintf(stderr, "error: failed to create %s\n", filename);
+    return false;
+  }
+  for (int i = 0; i < Cd_love.rows(); i ++) {
+    fprintf(fp, "%16.9e\n ", Cd_love(i, 0));
+  }
+  fclose(fp);
+  
+  sprintf(filename, "%s.rayleigh_G", output_prefix);
+  fp = fopen(filename, "w");
+  if (fp == NULL) {
+    fprintf(stderr, "error: failed to create %s\n", filename);
+    return false;
+  }
+  for (int i = 0; i < G_rayleigh.rows(); i ++) {
+    for (int j = 0; j < G_rayleigh.cols(); j ++) {
+      fprintf(fp, "%16.9e", G_rayleigh(i, j));
+    }
+    fprintf(fp, "\n");
+  }
+  fclose(fp);
+  
+  sprintf(filename, "%s.rayleigh_Cd", output_prefix);
+  fp = fopen(filename, "w");
+  if (fp == NULL) {
+    fprintf(stderr, "error: failed to create %s\n", filename);
+    return false;
+  }
+  for (int i = 0; i < Cd_rayleigh.rows(); i ++) {
+    fprintf(fp, "%16.9e\n", Cd_rayleigh(i, 0));
+  }
+  fclose(fp);
+  
+  sprintf(filename, "%s.Cm", output_prefix);
+  fp = fopen(filename, "w");
+  if (fp == NULL) {
+    fprintf(stderr, "error: failed to create %s\n", filename);
+    return false;
+  }
+  for (int i = 0; i < Cm.rows(); i ++) {
+    fprintf(fp, "%16.9e\n", Cm(i, 0));
+  }
+  fclose(fp);
 
+  //
+  // Save dLdp
+  //
+  sprintf(filename, "%s.dLdp", output_prefix);
+  fp = fopen(filename, "w");
+  if (fp == NULL) {
+    fprintf(stderr, "error: failed to create %s\n", filename);
+    return false;
+  }
+
+  for (int i = 0; i < dLdp_love.rows(); i ++) {
+    fprintf(fp, "%16.9e %16.9e\n", dLdp_love(i, 0), dLdp_rayleigh(i, 0));
+  }
+  fclose(fp);
+  
   return true;
 }
 

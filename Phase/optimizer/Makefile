@@ -6,7 +6,7 @@ INCLUDES = -I$(TRANSDSPEC1DBASE) $(shell gsl-config --cflags) -I$(HOME)/local/in
 CXX ?= mpicxx
 CXXFLAGS = -c -g -Wall -std=c++11 $(INCLUDES)
 
-CXXFLAGS += -O
+CXXFLAGS += -O3
 
 DGGEVLIB = $(TRANSDSPEC1DBASE)/dggev/libdggev.a
 SPEC1DLIB = $(TRANSDSPEC1DBASE)/spec1d/libspec1d.a
