@@ -475,6 +475,12 @@ static bool invert(DispersionData &data_love,
   Spec1DMatrix<double> residuals_love;
   Spec1DMatrix<double> Cd_love;
 
+  Spec1DMatrix<double> old_residuals_love;
+  Spec1DMatrix<double> old_residuals_rayleigh;
+  Spec1DMatrix<double> old_G_love;
+  Spec1DMatrix<double> old_G_rayleigh;
+  Spec1DMatrix<double> old_dLdp_love;
+  
   Spec1DMatrix<double> dkdp_rayleigh;
   Spec1DMatrix<double> dUdp_rayleigh;
   Spec1DMatrix<double> dLdp_rayleigh;
@@ -599,7 +605,23 @@ static bool invert(DispersionData &data_love,
 						      scale,
 						      skip);
   }
-    
+
+  size_t nparam = G_love.cols();
+
+  //
+  // Store parameters for perturbing current model
+  //
+  old_residuals_love = residuals_love;
+  old_residuals_rayleigh = residuals_rayleigh;
+  old_G_love = G_love;
+  old_G_rayleigh = G_rayleigh;
+
+  for (size_t i = 0; i < nparam; i ++) {
+    dLdp_love(i, 0) += dLdp_rayleigh(i, 0);
+  }
+
+  old_dLdp_love = dLdp_love;
+  
 
   double like = like_love + like_rayleigh;
   printf("init: %16.9e\n", like);
@@ -625,7 +647,6 @@ static bool invert(DispersionData &data_love,
   // Resize vectors/matrices G will be filled appropriately by likelihood
   // and will be correct size.
   //
-  size_t nparam = G_love.cols();
 
   //
   // Diagonal model covariance matrices
@@ -651,10 +672,6 @@ static bool invert(DispersionData &data_love,
     // First copy parameters to model vector
     //
     LeastSquaresIterator::copy(model, model_v, model_mask);
-
-    for (size_t i = 0; i < nparam; i ++) {
-      dLdp_love(i, 0) += dLdp_rayleigh(i, 0);
-    }
 
     int m = 0; //iterations % 2;
     bool valid = false;
@@ -796,105 +813,44 @@ static bool invert(DispersionData &data_love,
 	//
 	printf("%4d: Backtracking %16.9e %16.9e\n", iterations, like, last_like);
 	
-	LeastSquaresIterator::copy(model_v, model);
-
-	if (skip <= 1) {
-	  like_love = likelihood_love_bessel(data_love,
-					     model,
-					     reference,
-					     damping,
-					     posterior,
-					     mesh,
-					     love,
-					     dkdp_love,
-					     dUdp_love,
-					     dLdp_love,
-					     G_love,
-					     residuals_love,
-					     Cd_love,
-					     threshold,
-					     order,
-					     highorder,
-					     boundaryorder,
-					     scale,
-					     frequency_thin);
-	  
-	  like_rayleigh = likelihood_rayleigh_bessel(data_rayleigh,
-						     model,
-						     reference,
-						     damping,
-						     posterior,
-						     mesh,
-						     rayleigh,
-						     dkdp_rayleigh,
-						     dUdp_rayleigh,
-						     dLdp_rayleigh,
-						     G_rayleigh,
-						     residuals_rayleigh,
-						     Cd_rayleigh,
-						     threshold,
-						     order,
-						     highorder,
-						     boundaryorder,
-						     scale,
-						     frequency_thin);
-	  
-	} else {
-	  like_love = likelihood_love_bessel_spline(data_love,
-						    model,
-						    reference,
-						    damping,
-						    posterior,
-						    mesh,
-						    love,
-						    dkdp_love,
-						    dUdp_love,
-						    dLdp_love,
-						    G_love,
-						    Gk_love,
-						    GU_love,
-						    residuals_love,
-						    Cd_love,
-						    threshold,
-						    order,
-						    highorder,
-						    boundaryorder,
-						    scale,
-						    skip);
-	  
-	  like_rayleigh = likelihood_rayleigh_bessel_spline(data_rayleigh,
-							    model,
-							    reference,
-							    damping,
-							    posterior,
-							    mesh,
-							    rayleigh,
-							    dkdp_rayleigh,
-							    dUdp_rayleigh,
-							    dLdp_rayleigh,
-							    G_rayleigh,
-							    Gk_rayleigh,
-							    GU_rayleigh,
-							    residuals_rayleigh,
-							    Cd_rayleigh,
-							    threshold,
-							    order,
-							    highorder,
-							    boundaryorder,
-							    scale,
-							    skip);
-	}	
-	
-	like = like_love + like_rayleigh;
-	
 	if (epsilon[m] < EPSILON_MIN) {
 	  printf("%4d: Exiting\n", iterations);
 	  break;
 	}
 	
+	//
+	// Restore previous model
+	//
+	LeastSquaresIterator::copy(model_v, model);
+
+	//
+	// Restore previous gradients etc.
+	//
+	residuals_love = old_residuals_love;
+	residuals_rayleigh = old_residuals_rayleigh;
+	G_love = old_G_love;
+	G_rayleigh = old_G_rayleigh;
+	dLdp_love = old_dLdp_love;
+	
+	like = last_like;
+
 	epsilon[m] *= 0.5;
 	
       } else {
+
+	//
+	// Accepted new model, store current gradients etc
+	//
+	old_residuals_love = residuals_love;
+	old_residuals_rayleigh = residuals_rayleigh;
+	old_G_love = G_love;
+	old_G_rayleigh = G_rayleigh;
+	
+	for (size_t i = 0; i < nparam; i ++) {
+	  dLdp_love(i, 0) += dLdp_rayleigh(i, 0);
+	}
+	
+	old_dLdp_love = dLdp_love;
 	
 	printf("%4d: %16.9e %16.9e\n", iterations, like, epsilon[m]);
 	
