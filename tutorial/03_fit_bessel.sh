@@ -10,9 +10,9 @@ VS=0.5e3
 XI=0.05
 VPVS=0.05
 
-SKIP=20
+SKIP=0
 
-../Phase/optimizer/optimizejoint \
+/usr/bin/time -o Final_${STATIONPAIR}/opt.time ../Phase/optimizer/optimizejoint \
     -i ../example_data/LoveResponse/dispersion_${STATIONPAIR}.txt \
     -I ../example_data/LoveResponse/dispersion_${STATIONPAIR}.txt \
     -o Final_${STATIONPAIR}/opt \
