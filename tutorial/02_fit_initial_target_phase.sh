@@ -27,7 +27,7 @@ SKIP=15
     -X $XI \
     -S $VPVS \
     -M 0 -A 0.05 \
-    -N 50 \
+    -N 30 \
     -e 1.0 \
     -T $SKIP
 
