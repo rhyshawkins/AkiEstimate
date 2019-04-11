@@ -10,10 +10,10 @@ VS=0.5e3
 XI=0.05
 VPVS=0.05
 
-SKIP=20
+SKIP=15
 
 #gdb --args 
-../InitialPhase/optimizer/optimizejoint \
+/usr/bin/time -o Initial_${STATIONPAIR}/opt.time ../InitialPhase/optimizer/optimizejoint \
     -i ../example_data/LoveResponse/dispersion_${STATIONPAIR}.txt \
     -I ../example_data/LoveResponse/dispersion_${STATIONPAIR}.txt \
     -c InitialPhase/phase_${STATIONPAIR}.love \
@@ -27,7 +27,7 @@ SKIP=20
     -X $XI \
     -S $VPVS \
     -M 0 -A 0.05 \
-    -N 30 \
+    -N 50 \
     -e 1.0 \
     -T $SKIP
 
