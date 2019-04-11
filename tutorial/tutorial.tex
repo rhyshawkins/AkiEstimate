@@ -56,11 +56,30 @@ to describe the reference model is a simple text file, a simple example
 \section{Creating initial phase dispersion curves}
 
 This inversion methodology uses an extension to previous methods for zero-crossing to include peaks and
-troughs in addition to treating Love and Rayleigh observations jointly. This 
+troughs in addition to treating Love and Rayleigh observations jointly. This phase of the inversion is
+implemented in a Python script {\texttt InitialPhase/scripts/estimate\_joint\_phase\_amplitude.py}. This script
+assumes that the input files are arranged into directories and files as follows
+
+\begin{verbatim}
+BaseDirectory
+  |
+  |- LoveResponse
+  |  |
+  |  |- dispersion_<stationA>_<stationB>.txt
+  |  |- ...
+  |
+  |- RayleighResponse
+     |
+     |- dispersion_<stationA>_<stationB>.txt
+     |- ...
+\end{verbatim}
+
+This layout is used in the {\texttt example\_data} directory. It facilitates running the script
+just by specifying the base path 
 
 \section{Fitting}
 
-\section{Fitting
+\section{Fitting}
 
   \appendix
   
