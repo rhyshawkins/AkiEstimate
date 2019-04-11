@@ -23,13 +23,47 @@ are
 
 \begin{enumerate}
 \item Create a reference model and dispersion curve
-\item Create 
+\item Estimate points along the phase velocity dispersion curve from peaks, troughs, and zero-crossings
+  of the Noise Correlation Function.
+\item Fit a 1D Path Average Earth model to the dispersion curves
+\item Fit a 1D Path Average Earth model and amplitude model to the Noise Correlation function
+\end{enumerate}
+
+Each of these steps has a corresponding bash script for running the various stages of
+the inversion process, i.e.
+
+\begin{enumerate}
+\item 00\_create\_reference.sh
+\item 01\_create\_initial\_target\_phase.sh
+\item 02\_fit\_initial\_target\_phase.sh
+\item 03\_fit\_bessel.sh
+\end{enumerate}
+
+The first of these will generally only need to be run once, whereas the final three
+are required for each station pair.
+
+\section{Creating a reference model}
+
+A reference model is required as a starting point for this inversion process. The file format used
+to describe the reference model is a simple text file, a simple example
+
+\begin{verbatim}
+2
+10.0 0 3.50
+0.0 0 4.80
+\end{verbatim}
+
+
 
 \section{Input File Format}
 
-The file format used by the programs here for observed ambient noise cross-correlations is
-a simple text file format with some meta information on the first two lines, followed by
-the noise correlation function and empirical Greens function in the frequency domain.
+The file format used by the programs here for observed ambient noise
+cross-correlations is a simple text file format with some meta
+information on the first two lines, followed by the noise correlation
+function and empirical Greens function in the frequency domain.  An
+example for the first 4 lines of one of the example data files is
+shown below (these files are located in the example\_data
+subdirectory).
 
 \begin{verbatim}
   -21.096394000    65.109688000   -16.650196000    65.054375000   209.155962184
@@ -37,6 +71,27 @@ the noise correlation function and empirical Greens function in the frequency do
   0.000000  2.144090067e-02  0.000000000e+00  1.942721063e-03  0.000000000e+00
   0.000244  2.136327242e-02 -2.339829045e-06  1.336357675e-02  7.392375819e-04
 \end{verbatim}
+
+The first line contains longitude and latitude of the two stations,
+i.e. <lonA> <latA> <lonB> <latB>, followed by the interstation
+distance in kilometres. The second line contains the sampling rate of
+the signal in Hertz, the number of days of cross-correlations, the
+signal to noise ratios for the acausal and causal signals, and finally
+the number of points in the frequency domain representation of the
+noise correlation functions.
+
+The remaining lines contains the frequency domain representations of
+the empirical Greens functions and noise correlation functions where
+each line consists of <frequency>, <real EGF> <imaginary EGF> <real
+NCF> <imaginary NCF>. The frequency domain representation is assumed
+to be of a real signal and hence only the positive frequencies are
+required.
+
+For this inversion approach, the important parts of the data file
+required are the interstation distance, the sampling rate and the
+first and forth column (frequency and real component of the NCF). The
+EGF columns are only used for comparing Group velocity predictions.
+
 
 \end{document}
 
