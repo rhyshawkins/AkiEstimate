@@ -180,6 +180,75 @@ of running this phase of the optimization approach.
 
 \section{Fitting Bessel Functions}
 
+The final step uses the final model obtained from the previous step to
+fit the envelope and Bessel function of the NCF. The important command line options
+are similar to the previous step and we outline them below
+
+\begin{description}
+\item [-i|--input-love] Input dispersion data file for Love waves
+\item [-I|--input-rayleigh] Input dispersion data file for Rayleigh waves
+\item [-r|--reference] Reference/starting model file (from previous step)
+\item [-R|--sigma-rho] Gaussian prior width on density (kg/m$^3$)
+\item [-V|--sigma-vs] Gaussian prior width on $V_s$ (m/s)
+\item [-X|--sigma-xi] Gaussian prior width on $\xi$
+\item [-S|--sigma-vpvs] Guassian prior width on $V_p$/$V_s$ ratio
+\item [-N|--nsteps] Number of iterations to run
+\item [-T|--thin] Number of frequency bins to thin to approximate forward modelling
+\item [-G|--gaussian-smooth] Width of Gaussian filter to Smooth the envelope of the NCF (we often use 0 (no smoothing) or 1)
+\item [-J|--jacobians] Output Jacobians (for uncertainty estimates)
+\item [-o|--output] Output prefix for various files written on successful completion
+\end{description}
+
+The first two parameters are the input dispersion data files as in the
+previous step. The reference parameter should point to the output
+model file from the previous step.
+
+The next four parameters are prior widths as before.
+
+The nsteps and thin parameters are as in the previous step.
+
+We experimented with Gaussian smoothing of the envelope of the NCF and it has little effect. We generally
+use 0 (no-smoothing) or 1.
+
+The Jacobians option computes and outputs extra files representing model covariance and Jacobians of the
+forward model which can be post-processed to approximate uncertainties.
+
+Lastly, the output parameter specifies the output prefix for writing the output files on successful
+completion of the optimization.
+
+\begin{description}
+\item[*.initpred-love] Initial Love wave predictions
+\item[*.initpred-rayleigh] Initial Rayleigh wave predictions
+\item[*.pred-love] Final Love wave predictions
+\item[*.pred-rayleigh] Final Rayleigh wave predictions
+\item[*.model] Final model
+\end{description}
+
+If the Jacobians option is specified, the following extra files are written:
+
+\begin{description}
+\item[*.Cm] Model covariance matrix
+\item[*.love\_Cd] Love observation diagonal of data covariance matrix
+\item[*.rayleigh\_Cd] Rayleigh observation diagonal of data covariance matrix
+\item[*.love\_G] Love forward model matrix
+\item[*.love\_Jc] Love Jacobians for phase velocity
+\item[*.love\_JU] Love Jacobians for group velocity
+\item[*.rayleigh\_G]  Rayleigh forward model matrix
+\item[*.rayleigh\_Jc] Rayleigh Jacobians for phase velocity
+\item[*.rayleigh\_JU] Rayleigh Jacobians for group velocity
+\end{description}  
+
+An example of running this program is given in the {\texttt 03\_fit\_bessel.sh} script.
+
+\section{Analysing results}
+
+\subsection{Verifying Fit}
+
+\begin{verbatim}
+python2 scripts/plot_bessel_result.py -f Final_HOT05_HOT25 -d ../example_data
+\end{verbatim}
+
+
 
 \appendix
   
