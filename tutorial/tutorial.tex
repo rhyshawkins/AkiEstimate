@@ -90,12 +90,34 @@ python2 ../InitialPhase/scripts/estimate_joint_phase_amplitude.py -p ../example_
 \end{verbatim}
 
 This will predict an initial phase dispersion curve for Love and Rayleigh dispersion based on picking
-the peaks, troughs and zero crossings of the noise correlation function. As run above ... plots
+the peaks, troughs and zero crossings of the noise correlation function. As run above, this script
+uses by default the reference models in the tutorial subdirectory and plots the result of the picking
+and the phase dispersion curves for Love and Rayleigh waves. The important options for this script
+are
 
+\begin{description}
+\item[-p|--path] The base path for the dispresion data files
+\item[-s|--station-pair] The station pair, eg HOT05\_HOT25, to invert
+\item[-f|--freq-min] Minimum frequency (Hz)
+\item[-F|--freq-max] Maximum frequency (Hz)
+\item[--filter] Gaussian filter width for smoothing Bessel functions (0 = no filtering)
+\item[--noshow] Don't show the plots (useful for background processing)
+\item[-o|--output] Output the trial dispersion curves to files (write two files with .love and .rayleigh suffixes)
+\end{description}
 
-
+The frequency min and max values specify the range of frequencies to
+consider when searching for peaks, troughs, and zero-crossings
+(default is 0.025 to 0.35 Hz). A tunable parameter is the filter width
+that can be used to smooth NCF Bessel functions, values between 0 and
+3 produce consistent results but this may need to be adjusted. By
+default, the script simply shows a plot but with the noshow and output
+options, the trial dispersion curves for Love and Rayleigh waves can
+be written to files without plot output which is useful for bulk
+processing of data.
 
 \section{Fitting an Earth model to trial dispersion curves}
+
+
 
 \section{Fitting}
 
