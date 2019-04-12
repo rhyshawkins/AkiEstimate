@@ -7,7 +7,7 @@
 \author{Rhys Hawkins}
 \maketitle
 
-\section{Introduction}
+\section{Overview}
 
 This tutorial provides a worked example for estimating phase and group dispersion
 from ambient noise cross-correlations using the method described in
@@ -25,22 +25,29 @@ are
 \item Create a reference model and dispersion curve
 \item Estimate points along the phase velocity dispersion curve from peaks, troughs, and zero-crossings
   of the Noise Correlation Function.
-\item Fit a 1D Path Average Earth model to the dispersion curves
+\item Fit a 1D Path Average Earth model to the trial dispersion curves
 \item Fit a 1D Path Average Earth model and amplitude model to the Noise Correlation function
 \end{enumerate}
 
-Each of these steps has a corresponding bash script for running the various stages of
-the inversion process, i.e.
+\subsection{Quick run}
 
-\begin{enumerate}
-\item 00\_create\_reference.sh
-\item 01\_create\_initial\_target\_phase.sh
-\item 02\_fit\_initial\_target\_phase.sh
-\item 03\_fit\_bessel.sh
-\end{enumerate}
+Each of these steps has a corresponding bash script for running the various stages of
+the inversion process, to perform an inversion of one of the example noise correlation functions,
+from within this directory, once the various prerequisites are installed and programs within
+this software package are compiled, you can run in order:
+
+\begin{verbatim}
+> 00_create_reference.sh
+> 01_create_initial_target_phase.sh
+> 02_fit_initial_target_phase.sh
+> 03_fit_bessel.sh
+> python2 scripts/plot_bessel_result.py -f Final_HOT05_HOT25
+\end{verbatim}
 
 The first of these will generally only need to be run once, whereas the final three
-are required for each station pair.
+are required for each station pair. These final three steps take approximately
+6 minutes to run on a laptop computer. These scripts run command line programs which
+are explained in further detail in the following sections.
 
 \section{Creating a reference model}
 
@@ -74,10 +81,21 @@ BaseDirectory
      |- ...
 \end{verbatim}
 
-This layout is used in the {\texttt example\_data} directory. It facilitates running the script
-just by specifying the base path 
+This layout is used in the {\texttt example\_data} directory. This directory layout facilitates running the
+{\texttt InitialPhase/scripts/estimate\_joint\_phase\_amplitude.py} script by specifying the base path
+and a station pair to process. For example
 
-\section{Fitting}
+\begin{verbatim}
+python2 ../InitialPhase/scripts/estimate_joint_phase_amplitude.py -p ../example_data -s HOT05_HOT25 
+\end{verbatim}
+
+This will predict an initial phase dispersion curve for Love and Rayleigh dispersion based on picking
+the peaks, troughs and zero crossings of the noise correlation function. As run above ... plots
+
+
+
+
+\section{Fitting an Earth model to trial dispersion curves}
 
 \section{Fitting}
 
@@ -94,10 +112,10 @@ shown below (these files are located in the example\_data
 subdirectory).
 
 \begin{verbatim}
-  -21.096394000    65.109688000   -16.650196000    65.054375000   209.155962184
-  2.000000 197    11.332828014     6.217725756 4097
-  0.000000  2.144090067e-02  0.000000000e+00  1.942721063e-03  0.000000000e+00
-  0.000244  2.136327242e-02 -2.339829045e-06  1.336357675e-02  7.392375819e-04
+  -21.09639    65.10969   -16.65020    65.05438   209.15596
+  2.000000 197 11.33283 6.21773 4097
+  0.000000 2.14409e-02  0.00000e+00  1.94272e-03  0.00000e+00
+  0.000244 2.13633e-02 -2.33984e-06  1.33636e-02  7.39238e-04
 \end{verbatim}
 
 The first line contains longitude and latitude of the two stations,

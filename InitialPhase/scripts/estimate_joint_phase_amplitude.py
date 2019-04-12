@@ -51,11 +51,6 @@ def validate(points, phaseref):
         print bcolors.FAIL + '  Invalid: maxium phase: ' + bcolors.ENDC, numpy.max(c)
         return False, 2
 
-#    if (p.coeffs[0] < -6.0):
-#        print bcolors.FAIL + '  Invalid: quadratic terms: ' + bcolors.ENDC, p
-#        return False, -2
-#            
-
     return True, 0
 
 def find_reference_trough(zero, distkm, freq, cref):
@@ -1180,6 +1175,8 @@ def estimate_error(j0zeros, j1zeros, s, f, c, o, distkm):
         
 if __name__ == '__main__':
 
+    print sys.path[0]
+    
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-p', '--path', type = str, default = '/home/rhys/PhD/PhDS/tools/ANTEstimate/Processing', help = 'Data base path')
@@ -1188,8 +1185,8 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--threshold', type = float, default = 0.05, help = 'Threshold envelope')
 
     
-    parser.add_argument('-r', '--love-reference', type = str, default = '/home/rhys/PhD/PhDS/tools/ANTEstimate/Reference/reference/reference_love_fine.txt', help = 'Reference Love phase')
-    parser.add_argument('-R', '--rayleigh-reference', type = str, default = '/home/rhys/PhD/PhDS/tools/ANTEstimate/Reference/reference/reference_rayleigh_fine.txt', help = 'Reference Rayleigh phase')
+    parser.add_argument('-r', '--love-reference', type = str, default = os.path.join(sys.path[0], '../../tutorial/reference/reference_love_fine.txt'), help = 'Reference Love phase')
+    parser.add_argument('-R', '--rayleigh-reference', type = str, default = os.path.join(sys.path[0], '../../tutorial/reference/reference_rayleigh_fine.txt'), help = 'Reference Rayleigh phase')
 
     parser.add_argument('-v', '--vmin', type = float, default = 0.5, help = 'Minimum velocity')
     parser.add_argument('-V', '--vmax', type = float, default = 7.0, help = 'Maximum velocity')
