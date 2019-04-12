@@ -86,7 +86,8 @@ This layout is used in the {\texttt example\_data} directory. This directory lay
 and a station pair to process. For example
 
 \begin{verbatim}
-python2 ../InitialPhase/scripts/estimate_joint_phase_amplitude.py -p ../example_data -s HOT05_HOT25 
+python2 ../InitialPhase/scripts/estimate_joint_phase_amplitude.py \
+    -p ../example_data -s HOT05_HOT25 
 \end{verbatim}
 
 This will predict an initial phase dispersion curve for Love and Rayleigh dispersion based on picking
@@ -117,11 +118,70 @@ processing of data.
 
 \section{Fitting an Earth model to trial dispersion curves}
 
+The previous step generates a proposed phase velocity dispersion curves for Love and Rayleigh
+waves. These will naturally have noise and frequency gaps, so a first step is to fit a physically
+based dispersion curve to these trial curves to overcome both these issues.
+
+The program that performs this step is {\texttt InitialPhase/optimizer/optimizejoint} which is
+a C++ program that uses a gradient descent approach to converge a starting model (reference model)
+to the trial dispersion curves. The important options for this program are
+
+\begin{description}
+\item [-i|--input-love] Input dispersion data file for Love waves
+\item [-I|--input-rayleigh] Input dispersion data file for Rayleigh waves
+\item [-c|--phase-love] Initial Love dispersion curve to fit
+\item [-C|--phase-rayleigh] Initial Rayleigh dispersion curve to fit
+\item [-r|--reference] Reference model file
+\item [-R|--sigma-rho] Gaussian prior width on density (kg/m$^3$)
+\item [-V|--sigma-vs] Gaussian prior width on $V_s$ (m/s)
+\item [-X|--sigma-xi] Gaussian prior width on $\xi$
+\item [-S|--sigma-vpvs] Guassian prior width on $V_p$/$V_s$ ratio
+\item [-N|--nsteps] Number of iterations to run
+\item [-T|--thin] Number of frequency bins to thin to approximate forward modelling
+\item [-o|--output] Output prefix for various files written on successful completion
+\end{description}
+
+The first five command line parameters are for input data files
+representing the observed noise correlation function, the trial
+dispersion curves to fit, and the starting or reference model.
+
+The next four parameters specify the prior widths for the four model
+parameters used for the 1D path average Earth model. We've generally
+found that relatively wide prior widths of 500 kg/m$^3$ for density,
+500 m/s for $V_s$, and 0.05 for $\xi$ and $V_p$/$V_s$ ratio.
+
+The number of steps to run is a trade-off between running time and
+convergence. Generally we use between 30 - 50 iterations. If a large
+number of iterations is specified, the program will terminate when the
+gradient descent approach cannot improve the model further.
+
+The thinning option allows an approximate forward model where the full
+adjoint is only computed at every $n$th frequency bin based on the
+thinning parameter. This is achieved by using a piece-wise Hermite
+interpolant between points for the wavenumber $k$ and its deriviatives
+with respect to model parameters as a function of frequency.  This
+allows a large increase in speed of computation at a relative low cost
+in terms of accuracy. Values of around 20 start to incur errors around
+1\%, so a recommendation is a value of around 15 is acceptable.
+
+Lastly the output option specifies an output prefix for multiple output files
+that are written upon successul completion of the optimizaiton. These files
+are
+
+\begin{description}
+\item[*.model] The final model of the optimization (used as input for the next step)
+\item[*.pred-love] The final predictions of Love wave dispersion
+\item[*.pred-rayleigh] The final predictions of Rayleigh wave dispersion
+\end{description}
+
+The script {\texttt 02\_fit\_initial\_target\_phase.txt} provides an example
+of running this phase of the optimization approach.
 
 
-\section{Fitting}
+\section{Fitting Bessel Functions}
 
-  \appendix
+
+\appendix
   
 \section{Input File Format}
 
