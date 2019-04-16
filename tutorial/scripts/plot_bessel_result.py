@@ -36,8 +36,8 @@ if __name__ == '__main__':
     lovepred = numpy.loadtxt('%s/opt.pred-love' % args.fits)
     rayleighpred = numpy.loadtxt('%s/opt.pred-rayleigh' % args.fits)
 
-    stationpair = '_'.join(os.path.basename(args.fits).split('_')[1:3])
-    
+    stationpair = '_'.join(os.path.basename(args.fits.rstrip('/')).split('_')[1:3])
+
     lovedata = os.path.join(args.data, 'LoveResponse/dispersion_%s.txt' % stationpair)
     rayleighdata = os.path.join(args.data, 'RayleighResponse/dispersion_%s.txt' % stationpair)
 
