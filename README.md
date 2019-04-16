@@ -4,7 +4,14 @@ Estimate dispersion from Ambient Noise Cross-Correlations using Aki's spectral f
 
 ## Introduction
 
+This software estimates interstation dispersion for Love and Rayleigh surface waves using
+Aki's spectral formulation. The method is detailed in the publication:
 
+  Hawkins R. and Sambridge M., ``An adjoint technique for estimation of interstation phase and
+  group dispersion from ambient noise cross-correlations``, BSSA, 2019
+
+This software is scientific software and is intended to demonstrate the functionality outlined
+in the manuscript reference above. 
 
 ## Authors
 
@@ -35,9 +42,17 @@ a modified BSD license (see http://www.netlib.org/lapack/LICENSE.txt).
 
 ## Compilation
 
+The top level Makefile compiles all the necessary components so assuming
+the prerequisites are available as listed above, compilation should be
+a matter of issuing a `make' command from the top level directory.
+
+If component
+
+
 ```
 make -C forwardmodel/dggev
 make -C forwardmodel/spec1d
+make -C Reference
 make -C InitialPhase/optimizer
 make -C Phase/optimizer
 '''
