@@ -46,8 +46,8 @@ The top level Makefile compiles all the necessary components so assuming
 the prerequisites are available as listed above, compilation should be
 a matter of issuing a `make' command from the top level directory.
 
-If component
-
+Individual components can be built in-order using the following commands
+if changes are required by your build environment
 
 ```
 make -C forwardmodel/dggev
