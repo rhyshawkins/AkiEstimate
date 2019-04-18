@@ -33,7 +33,7 @@
 #include "simple.hpp"
 #include "quasinewton.hpp"
 
-static char short_options[] = "i:C:r:f:F:R:V:X:S:o:s:p:b:t:P:e:N:QA:M:h";
+static char short_options[] = "i:C:r:f:F:R:V:X:S:o:s:p:b:t:P:e:N:QM:h";
 static struct option long_options[] = {
   {"input", required_argument, 0, 'i'},
   {"phase", required_argument, 0, 'C'},
@@ -60,7 +60,6 @@ static struct option long_options[] = {
 
   {"posterior", no_argument, 0, 'Q'},
   
-  {"amplitude-threshold", required_argument, 0, 'A'},
   {"mode", required_argument, 0, 'M'},
 
   {"help", no_argument, 0, 'h'},
@@ -112,13 +111,6 @@ int main(int argc, char *argv[])
 
   bool nodata;
 
-  double sigma;
-  double vmin;
-  double vmax;
-  double max_deltav;
-
-  double amplitude_threshold;
-
   char filename[1024];
 
   int mode;
@@ -151,12 +143,6 @@ int main(int argc, char *argv[])
 
   nodata = false;
 
-  vmin = 1.0;
-  vmax = 5.0;
-
-  max_deltav = 1.0e-3;
-
-  amplitude_threshold = 0.0;
   mode = 0;
   
   //
@@ -290,10 +276,6 @@ int main(int argc, char *argv[])
 
     case 'Q':
       nodata = true;
-      break;
-
-    case 'A':
-      amplitude_threshold = atof(optarg);
       break;
 
     case 'M':

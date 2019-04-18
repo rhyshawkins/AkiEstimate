@@ -33,7 +33,7 @@
 #include "simple.hpp"
 #include "quasinewton.hpp"
 
-static char short_options[] = "i:c:I:C:r:f:F:R:V:X:S:o:s:p:b:t:P:N:e:QA:WM:T:h";
+static char short_options[] = "i:c:I:C:r:f:F:R:V:X:S:o:s:p:b:t:P:N:e:QWM:T:h";
 static struct option long_options[] = {
   {"input-love", required_argument, 0, 'i'},
   {"phase-love", required_argument, 0, 'c'},
@@ -63,8 +63,6 @@ static struct option long_options[] = {
 
   {"posterior", no_argument, 0, 'Q'},
   
-  {"amplitude-threshold", required_argument, 0, 'A'},
-  {"write-ftan", no_argument, 0, 'W'},
   {"mode", required_argument, 0, 'M'},
 
   {"thin", required_argument, 0, 'T'},
@@ -124,15 +122,6 @@ int main(int argc, char *argv[])
 
   bool nodata;
 
-  double sigma;
-  double vmin;
-  double vmax;
-  double max_deltav;
-
-  double amplitude_threshold;
-
-  bool write_ftan;
-
   int mode;
 
   int skip;
@@ -168,15 +157,6 @@ int main(int argc, char *argv[])
   damping[3] = 0.0;
 
   nodata = false;
-
-  vmin = 1.0;
-  vmax = 5.0;
-
-  max_deltav = 1.0e-3;
-
-  amplitude_threshold = 0.0;
-
-  write_ftan = false;
 
   mode = 0;
 
@@ -323,14 +303,6 @@ int main(int argc, char *argv[])
       nodata = true;
       break;
 
-    case 'A':
-      amplitude_threshold = atof(optarg);
-      break;
-
-    case 'W':
-      write_ftan = true;
-      break;
-      
     case 'M':
       mode = atoi(optarg);
       if (mode < 0 || mode > 1) {

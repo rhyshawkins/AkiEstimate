@@ -24,7 +24,7 @@ typedef Model<double, node_t, boundary_t, MAXORDER> model_t;
 typedef Mesh<double, MAXORDER> mesh_t;
 typedef LoveMatrices<double, MAXORDER> lovesolver_t;
 
-static char short_options[] = "i:o:f:F:S:H:p:b:t:P:h";
+static char short_options[] = "i:o:f:F:S:H:p:b:P:h";
 static struct option long_options[] = {
   {"input", required_argument, 0, 'i'},
   {"output", required_argument, 0, 'o'},
@@ -37,7 +37,6 @@ static struct option long_options[] = {
   {"scale", required_argument, 0, 's'},
   {"order", required_argument, 0, 'p'},
   {"boundaryorder", required_argument, 0, 'b'},
-  {"threshold", required_argument, 0, 't'},
   {"high-order", required_argument, 0, 'P'},
 
   {"help", no_argument, 0, 'h'},
@@ -60,7 +59,6 @@ int main(int argc, char *argv[])
   double hertz;
   int samples;
   
-  double threshold;
   int order;
   int highorder;
   int boundaryorder;
@@ -77,7 +75,6 @@ int main(int argc, char *argv[])
   fmin = 0.0;
   fmax = 0.5;
 
-  threshold = 0.0;
   order = 5;
   highorder = 5;
   boundaryorder = 5;
@@ -164,10 +161,6 @@ int main(int argc, char *argv[])
         fprintf(stderr, "error: boundary order must be 1 or greater\n");
         return -1;
       }
-      break;
-
-    case 't':
-      threshold = atof(optarg);
       break;
 
     case 'P':
