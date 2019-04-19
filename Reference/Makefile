@@ -3,14 +3,13 @@ BASELIB=../forwardmodel
 
 INCLUDES = -I$(BASELIB) 
 
-CXX = mpicxx
+CXX ?= g++
 CXXFLAGS = -c -g -Wall -std=c++11 $(INCLUDES)
 
 CXXFLAGS += -O3
 
 DGGEVLIB = $(BASELIB)/dggev/libdggev.a
 SPEC1DLIB = $(BASELIB)/spec1d/libspec1d.a
-#TRANSDLIB = $(BASELIB)/transd/libtransd.a
 
 LIBS = $(shell gsl-config --libs) $(TRANSDLIB) $(SPEC1DLIB) $(DGGEVLIB) -lgfortran
 

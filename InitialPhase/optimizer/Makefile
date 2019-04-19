@@ -1,9 +1,9 @@
 
 TRANSDSPEC1DBASE=../../forwardmodel
 
-INCLUDES = -I$(TRANSDSPEC1DBASE) -I$(HOME)/local/include
+INCLUDES = -I$(TRANSDSPEC1DBASE) 
 
-CXX ?= mpicxx
+CXX ?= g++
 CXXFLAGS = -c -g -Wall -std=c++11 $(INCLUDES)
 
 CXXFLAGS += -O3

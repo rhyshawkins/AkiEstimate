@@ -3,7 +3,7 @@ TRANSDSPEC1DBASE=../../forwardmodel
 
 INCLUDES = -I$(TRANSDSPEC1DBASE) $(shell gsl-config --cflags) -I$(HOME)/local/include
 
-CXX ?= mpicxx
+CXX ?= g++
 CXXFLAGS = -c -g -Wall -std=c++11 $(INCLUDES)
 
 CXXFLAGS += -O3
