@@ -58,7 +58,7 @@ make -C forwardmodel/spec1d
 make -C Reference
 make -C InitialPhase/optimizer
 make -C Phase/optimizer
-'''
+```
 
 ## Running
 
