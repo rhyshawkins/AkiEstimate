@@ -928,7 +928,7 @@ static bool invert(DispersionData &data_love,
     }
     for (int i = 0; i < G_rayleigh.rows(); i ++) {
       for (int j = 0; j < G_rayleigh.cols(); j ++) {
-	fprintf(fp, "%16.9e", G_rayleigh(i, j));
+	fprintf(fp, "%16.9e ", G_rayleigh(i, j));
       }
       fprintf(fp, "\n");
     }

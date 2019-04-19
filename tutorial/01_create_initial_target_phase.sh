@@ -1,6 +1,12 @@
 #!/bin/bash
 
-STATIONPAIR=HOT05_HOT25
+if [ -z "$1" ]
+then
+  STATIONPAIR=HOT05_HOT25
+else
+  STATIONPAIR=$1
+fi
+
 
 mkdir -p InitialPhase
 

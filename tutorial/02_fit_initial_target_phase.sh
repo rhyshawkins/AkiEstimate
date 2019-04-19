@@ -1,6 +1,13 @@
 #!/bin/bash
 
-STATIONPAIR=HOT05_HOT25
+if [ -z "$1" ]
+then
+  STATIONPAIR=HOT05_HOT25
+else
+  STATIONPAIR=$1
+fi
+
+
 mkdir -p Initial_${STATIONPAIR}
 
 FMIN=0.025
@@ -26,7 +33,7 @@ SKIP=15
     -V $VS \
     -X $XI \
     -S $VPVS \
-    -M 0 -A 0.05 \
+    -M 0 \
     -N 30 \
     -e 1.0 \
     -T $SKIP

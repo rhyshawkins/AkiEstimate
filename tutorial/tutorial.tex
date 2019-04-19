@@ -207,14 +207,15 @@ The next four parameters are prior widths as before.
 
 The nsteps and thin parameters are as in the previous step.
 
-We experimented with Gaussian smoothing of the envelope of the NCF and it has little effect. We generally
-use 0 (no-smoothing) or 1.
+We experimented with Gaussian smoothing of the envelope of the NCF and
+it has little effect. We generally use 0 (no-smoothing) or 1.
 
-The Jacobians option computes and outputs extra files representing model covariance and Jacobians of the
-forward model which can be post-processed to approximate uncertainties.
+The Jacobians option computes and outputs extra files representing
+model covariance and Jacobians of the forward model which can be
+post-processed to approximate uncertainties.
 
-Lastly, the output parameter specifies the output prefix for writing the output files on successful
-completion of the optimization.
+Lastly, the output parameter specifies the output prefix for writing
+the output files on successful completion of the optimization.
 
 \begin{description}
 \item[*.initpred-love] Initial Love wave predictions
@@ -224,7 +225,8 @@ completion of the optimization.
 \item[*.model] Final model
 \end{description}
 
-If the Jacobians option is specified, the following extra files are written:
+If the Jacobians option is specified, the following extra files are
+written:
 
 \begin{description}
 \item[*.Cm] Model covariance matrix
@@ -242,13 +244,45 @@ An example of running this program is given in the {\texttt 03\_fit\_bessel.sh} 
 
 \section{Analysing results}
 
+In the {\texttt tutorial/scripts} directory there are some python scripts
+(requiring numpy and matplotlib packages) for plot the results. These also
+provide examples of how to extract information from the files output
+during the final stage of inversion.
+
 \subsection{Verifying Fit}
+
+To plot the final fit of the predicted Bessel functons to the
+observered real spectrum of the NCF:
 
 \begin{verbatim}
 python2 scripts/plot_bessel_result.py -f Final_HOT05_HOT25 -d ../example_data
 \end{verbatim}
 
+The real data is shown in black, with the fitted Bessel shown in red.
 
+\subsection{Comparing Group Velocities}
+
+To plot the predicted group velocities versus the FTAN images:
+
+\begin{verbatim}
+python2 scripts/plot_group_result.py -f Final_HOT05_HOT25 -d ../example_data
+\end{verbatim}
+
+The FTAN analysis is shown shaded in gray scale (try --cm Blues for
+colour) with the predicted group velocity curve plotted with a black
+line.
+
+\subsection{Uncertainties}
+
+To plot 95\% confidence intervals for Group and Phase velocity
+estimates:
+
+\begin{verbatim}
+python2 scripts/plot_uncertainties.py -f Final_HOT05_HOT25
+\end{verbatim}
+
+This uses an eigen decomposition to project the covariance matrix
+(hyper-ellipse) into phase or group velocity confidence intervals.
 
 \appendix
   
