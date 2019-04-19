@@ -42,6 +42,9 @@ a modified BSD license (see http://www.netlib.org/lapack/LICENSE.txt).
 
 ## Compilation
 
+You may need to edit the Makefiles in Reference, InitialPhase/optimizer
+and Phase/optimizer to adjust compiler used.
+
 The top level Makefile compiles all the necessary components so assuming
 the prerequisites are available as listed above, compilation should be
 a matter of issuing a `make' command from the top level directory.
