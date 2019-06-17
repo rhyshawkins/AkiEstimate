@@ -20,10 +20,8 @@ VPVS=0.05
 SKIP=15
 
 #gdb --args 
-/usr/bin/time -o Initial_${STATIONPAIR}/opt.time ../InitialPhase/optimizer/optimizejoint \
-    -i ../example_data/LoveResponse/dispersion_${STATIONPAIR}.txt \
-    -I ../example_data/RayleighResponse/dispersion_${STATIONPAIR}.txt \
-    -c InitialPhase/phase_${STATIONPAIR}.love \
+/usr/bin/time -o Initial_${STATIONPAIR}/opt.time ../InitialPhase/optimizer/optimizerayleigh \
+    -i ../example_data/RayleighResponse/dispersion_${STATIONPAIR}.txt \
     -C InitialPhase/phase_${STATIONPAIR}.rayleigh \
     -o Initial_${STATIONPAIR}/opt \
     -r ../Reference/models/greenetal+lidettrick_smooth_edgecorrected.txt \

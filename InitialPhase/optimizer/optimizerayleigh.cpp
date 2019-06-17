@@ -33,7 +33,7 @@
 #include "simple.hpp"
 #include "quasinewton.hpp"
 
-static char short_options[] = "i:C:r:f:F:R:V:X:S:o:s:p:b:t:P:e:N:QM:h";
+static char short_options[] = "i:C:r:f:F:R:V:X:S:o:s:p:b:t:P:e:N:QM:T:h";
 static struct option long_options[] = {
   {"input", required_argument, 0, 'i'},
   {"phase", required_argument, 0, 'C'},
@@ -62,6 +62,8 @@ static struct option long_options[] = {
   
   {"mode", required_argument, 0, 'M'},
 
+  {"thin", required_argument, 0, 'T'},
+
   {"help", no_argument, 0, 'h'},
   
   {0, 0, 0, 0}
@@ -84,7 +86,8 @@ static bool invert(DispersionData &data,
                    double epsilon,
                    int maxiterations,
                    double likelihood_threshold,
-		   int mode);
+		   int mode,
+		   int skip);
 
 int main(int argc, char *argv[])
 {
@@ -115,6 +118,8 @@ int main(int argc, char *argv[])
 
   int mode;
 
+  int skip;
+
   //
   // Defaults
   //
@@ -144,6 +149,8 @@ int main(int argc, char *argv[])
   nodata = false;
 
   mode = 0;
+
+  skip = 0;
   
   //
   // Command line parameters
@@ -286,6 +293,14 @@ int main(int argc, char *argv[])
       }
       break;
 
+    case 'T':
+      skip = atoi(optarg);
+      if (skip < 0) {
+	fprintf(stderr, "error: thin must be positive\n");
+	return -1;
+      }
+      break;
+
     default:
       fprintf(stderr, "unknown option %c\n", c);
     case 'h':
@@ -366,7 +381,8 @@ int main(int argc, char *argv[])
 	      epsilon,
 	      maxiterations,
 	      0.0,
-	      mode)) {
+	      mode,
+	      skip)) {
     fprintf(stderr, "error: failed to invert\n");
     return -1;
   }
@@ -420,62 +436,99 @@ static bool invert(DispersionData &data,
                    double highorder,
                    double boundaryorder,
                    double scale,
-                   double epsilon,
+                   double _epsilon,
                    int maxiterations,
                    double likelihood_threshold,
-		   int mode)
+		   int mode,
+		   int skip)
 {
-  Spec1DMatrix<double> dkdp;
-  Spec1DMatrix<double> dUdp;
   Spec1DMatrix<double> dLdp;
+  
+  Spec1DMatrix<double> old_residuals_rayleigh;
+  Spec1DMatrix<double> old_G_rayleigh;
+  Spec1DMatrix<double> old_dLdp;
+
+  Spec1DMatrix<double> dkdp_rayleigh;
+  Spec1DMatrix<double> dUdp_rayleigh;
+  Spec1DMatrix<double> G_rayleigh;
+  Spec1DMatrix<double> Gk_rayleigh;
+  Spec1DMatrix<double> GU_rayleigh;
+  Spec1DMatrix<double> residuals_rayleigh;
+  Spec1DMatrix<double> Cd_rayleigh;
 
   Spec1DMatrix<int> model_mask;
   Spec1DMatrix<double> model_v;
   Spec1DMatrix<double> model_v_proposed;
   Spec1DMatrix<double> model_0;
   
-  Spec1DMatrix<double> G;
-  Spec1DMatrix<double> Cd;
   Spec1DMatrix<double> Cm;
   Spec1DMatrix<double> residuals;
   
-  LeastSquaresIterator *step;
-
-  switch (mode) {
-  case 0:
-    step = new SimpleStep();
-    break;
-
-  case 1:
-    step = new QuasiNewton();
-    break;
-
-  default:
-    fprintf(stderr, "error: invalid mode: %d\n", mode);
-    return false;
-  }
+  LeastSquaresIterator *step[2];
+  double epsilon[2];
 
   double frequency_thin = 0.001;
+  
+  double PRIOR_MIN[4] = {0.1e3, 0.5e3, 0.5, 1.0};
+  double PRIOR_MAX[4] = {8.0e3, 10.0e3, 1.5, 2.5};
 
-  double like = likelihood_rayleigh(data,
-				    model,
-				    reference,
-				    damping,
-				    posterior,
-				    mesh,
-				    rayleigh,
-				    dkdp,
-				    dUdp,
-				    dLdp,
-				    G,
-				    residuals,
-				    Cd,
-				    threshold,
-				    order,
-				    highorder,
-				    boundaryorder,
-				    scale,
-				    frequency_thin);
+  epsilon[0] = _epsilon;
+  epsilon[1] = _epsilon/8.0;
+
+  step[0] = new SimpleStep();
+  step[1] = new QuasiNewton();
+    
+  double like_rayleigh;
+  double like;
+  
+  if (skip <= 1) {
+
+    like_rayleigh = likelihood_rayleigh(data,
+					model,
+					reference,
+					damping,
+					posterior,
+					mesh,
+					rayleigh,
+					dkdp_rayleigh,
+					dUdp_rayleigh,
+					dLdp,
+					G_rayleigh,
+					residuals_rayleigh,
+					Cd_rayleigh,
+					threshold,
+					order,
+					highorder,
+					boundaryorder,
+					scale,
+					frequency_thin);
+
+  } else {
+    like_rayleigh = likelihood_rayleigh_spline(data,
+					       model,
+					       reference,
+					       damping,
+					       false,
+					       mesh,
+					       rayleigh,
+					       dkdp_rayleigh,
+					       dUdp_rayleigh,
+					       dLdp,
+					       G_rayleigh,
+					       Gk_rayleigh,
+					       GU_rayleigh,
+					       residuals_rayleigh,
+					       Cd_rayleigh,
+					       threshold,
+					       order,
+					       highorder,
+					       boundaryorder,
+					       scale,
+					       skip);
+  }
+
+  like = like_rayleigh;
+    
   printf("init: %16.9e\n", like);
   double last_like = like;
 
@@ -487,7 +540,7 @@ static bool invert(DispersionData &data,
   // Resize vectors/matrices G will be filled appropriately by likelihood
   // and will be correct size.
   //
-  size_t nparam = G.cols();
+  size_t nparam = G_rayleigh.cols();
   
   //
   // Diagonal model covariance matrices
@@ -512,88 +565,132 @@ static bool invert(DispersionData &data,
     // First copy parameters to model vector
     //
     LeastSquaresIterator::copy(model, model_v, model_mask);
-
-    if (!step->ComputeStep(epsilon,
-			   Cd,
-			   Cm,
-			   residuals,
-			   G,
-			   dLdp,
-			   model_mask,
-			   model_v,
-			   model_0,
-			   model_v_proposed)) {
-    }
-
-    LeastSquaresIterator::copy(model_v_proposed, model);
-
-    //
-    // Recompute Likelihood
-    //
-    last_like = like;
-    if (iterations == (maxiterations - 1)) {
-      frequency_thin = 0.0;
-    }
-    like = likelihood_rayleigh(data,
-			       model,
-			       reference,
-			       damping,
-			       posterior,
-			       mesh,
-			       rayleigh,
-			       dkdp,
-			       dUdp,
-			       dLdp,
-			       G,
-			       residuals,
-			       Cd,
-			       threshold,
-			       order,
-			       highorder,
-			       boundaryorder,
-			       scale,
-			       frequency_thin);
-
-    if (like > last_like) {
-      //
-      // Back track and recompute (a little inefficient here)
-      //
-      if (epsilon < EPSILON_MIN) {
-	printf("%4d: Exiting\n", iterations);
-	break;
+    int m = iterations % 2;
+    bool valid = false;
+    
+    do {
+      if (!step[m]->ComputeStep(epsilon[m],
+				Cd_rayleigh,
+				Cm,
+				residuals_rayleigh,
+				G_rayleigh,
+				dLdp,
+				model_mask,
+				model_v,
+				model_0,
+				model_v_proposed)) {
+	fprintf(stderr, "error: failed to compute step\n");
+	return false;
       }
+
+      valid = LeastSquaresIterator::validate(model_v_proposed, model_mask,
+					     PRIOR_MIN,
+					     PRIOR_MAX);
+      if (!valid) {
+	if (epsilon[m] < EPSILON_MIN) {
+	  printf("%4d: Prior violation exit\n", iterations);
+	  break;
+	}
+	
+	epsilon[m] *= 0.5;
+      }
+    } while (!valid);
       
-      printf("%4d: Backtracking\n", iterations);
+    if (valid) {
+      LeastSquaresIterator::copy(model_v_proposed, model);
       
-      epsilon *= 0.5;
-      LeastSquaresIterator::copy(model_v, model);
+      //
+      // Recompute Likelihood
+      //
+      last_like = like;
+
+      if (skip <= 1) {
+	like_rayleigh = likelihood_rayleigh(data,
+					    model,
+					    reference,
+					    damping,
+					    posterior,
+					    mesh,
+					    rayleigh,
+					    dkdp_rayleigh,
+					    dUdp_rayleigh,
+					    dLdp,
+					    G_rayleigh,
+					    residuals_rayleigh,
+					    Cd_rayleigh,
+					    threshold,
+					    order,
+					    highorder,
+					    boundaryorder,
+					    scale,
+					    frequency_thin);
+      } else {
+	like_rayleigh = likelihood_rayleigh_spline(data,
+						   model,
+						   reference,
+						   damping,
+						   false,
+						   mesh,
+						   rayleigh,
+						   dkdp_rayleigh,
+						   dUdp_rayleigh,
+						   dLdp,
+						   G_rayleigh,
+						   Gk_rayleigh,
+						   GU_rayleigh,
+						   residuals_rayleigh,
+						   Cd_rayleigh,
+						   threshold,
+						   order,
+						   highorder,
+						   boundaryorder,
+						   scale,
+						   skip);
+      }	
       
-      like = likelihood_rayleigh(data,
-				 model,
-				 reference,
-				 damping,
-				 posterior,
-				 mesh,
-				 rayleigh,
-				 dkdp,
-				 dUdp,
-				 dLdp,
-				 G,
-				 residuals,
-				 Cd,
-				 threshold,
-				 order,
-				 highorder,
-				 boundaryorder,
-				 scale,
-				 frequency_thin);
-    } else {
+      like = like_rayleigh;
       
-      //    if (iterations % 100 == 0) {
-      printf("%4d: %16.9e %16.9e\n", iterations, like, epsilon);
-      //    }
+      if (like > last_like) {
+	//
+	// Back track and recompute (a little inefficient here)
+	//
+	if (epsilon[m] < EPSILON_MIN) {
+	  printf("%4d: Exiting\n", iterations);
+	  break;
+	}
+	
+	printf("%4d: Backtracking\n", iterations);
       
-      iterations ++;
+	epsilon[m] *= 0.5;
+
+	//
+	// Restore previous model
+	//
+	LeastSquaresIterator::copy(model_v, model);
+
+	//
+	// Restore previous gradients etc.
+	//
+	residuals_rayleigh = old_residuals_rayleigh;
+	G_rayleigh = old_G_rayleigh;
+	dLdp = old_dLdp;
+	
+	like = last_like;
+      
+      } else {
+
+	//
+	// Accepted new model, store current gradients etc
+	//
+	old_residuals_rayleigh = residuals_rayleigh;
+	old_G_rayleigh = G_rayleigh;
+	
+	old_dLdp = dLdp;
+
+	printf("%4d: %16.9e %16.9e\n", iterations, like, epsilon[m]);
+	
+	iterations ++;
+      }
     }
     
   } while (iterations < maxiterations);

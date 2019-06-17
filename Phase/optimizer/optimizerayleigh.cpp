@@ -32,7 +32,7 @@
 #include "simple.hpp"
 #include "quasinewton.hpp"
 
-static char short_options[] = "i:r:f:F:JR:V:X:S:o:s:p:b:t:P:e:N:D:QG:M:h";
+static char short_options[] = "i:r:f:F:JR:V:X:S:o:s:p:b:t:P:e:N:D:QG:M:T:h";
 static struct option long_options[] = {
   {"input", required_argument, 0, 'i'},
   {"reference", required_argument, 0, 'r'},
@@ -62,6 +62,8 @@ static struct option long_options[] = {
   
   {"gaussian-smooth", required_argument, 0, 'G'},
   {"mode", required_argument, 0, 'M'},
+  
+  {"skip", required_argument, 0, 'T'},
   
   {"help", no_argument, 0, 'h'},
   
@@ -186,6 +188,22 @@ int main(int argc, char *argv[])
       output_file = optarg;
       break;
 
+    case 'f':
+      fmin = atof(optarg);
+      if (fmin <= 0.0) {
+	fprintf(stderr, "error: fmin must be greater than 0\n");
+	return -1;
+      }
+      break;
+
+    case 'F':
+      fmax = atof(optarg);
+      if (fmax <= 0.0) {
+	fprintf(stderr, "error: fmax must be greater than 0\n");
+	return -1;
+      }
+      break;
+
     case 'J':
       jacobians = true;
       break;
@@ -290,6 +308,14 @@ int main(int argc, char *argv[])
       mode = atoi(optarg);
       if (mode < 0 || mode > 1) {
 	fprintf(stderr, "error: mode must be 0 (simple gradient desc.) or 1 (q-newton)\n");
+	return -1;
+      }
+      break;
+
+    case 'T':
+      skip = atoi(optarg);
+      if (skip < 0) {
+	fprintf(stderr, "error: skip must be positive\n");
 	return -1;
       }
       break;
