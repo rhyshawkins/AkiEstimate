@@ -284,6 +284,24 @@ python2 scripts/plot_uncertainties.py -f Final_HOT05_HOT25
 This uses an eigen decomposition to project the covariance matrix
 (hyper-ellipse) into phase or group velocity confidence intervals.
 
+\subsection{Inverting Rayleigh data only}
+
+It is possible to invert only Rayleigh wave data in the case where only vertical
+data is available (for example). Addition scripts are provided with the post
+fix ``rayleigh'' analogous to the scripts described above. In summary,
+once a reference model is created, inverting the example data for Rayleigh waves
+only can be achieved using
+
+\begin{verbatim}
+> 01_create_initial_target_phase_rayleigh.sh
+> 02_fit_initial_target_phase_rayleigh.sh
+> 03_fit_bessel_rayleigh.sh
+> python2 scripts/plot_bessel_result_rayleigh.py -f Final_HOT05_HOT25
+\end{verbatim}
+
+Most of the command line arguments within these scripts have obvious counterparts
+to those described above.
+
 \appendix
   
 \section{Input File Format}
