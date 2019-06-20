@@ -48,7 +48,7 @@ def validate(points, phaseref):
     pd = p.deriv()
 
     if (numpy.max(c) > 6.0):
-        print bcolors.FAIL + '  Invalid: maxium phase: ' + bcolors.ENDC, numpy.max(c)
+        print(bcolors.FAIL + '  Invalid: maxium phase: ' + bcolors.ENDC, numpy.max(c))
         return False, 2
 
     return True, 0
@@ -125,11 +125,11 @@ def estimate_first_trough_offset(j1zeros, points, distkm, freq, signal, cref):
     n = numpy.floor((f - width/2.0)/width)
     tf = f - (float(n) * width)
 
-    print '  First detected trough at: %15.9f %d' % (f, o)
-    print '  First estimated trough  : %15.9f %d' % (tf, o - n*2)
+    print('  First detected trough at: %15.9f %d' % (f, o))
+    print('  First estimated trough  : %15.9f %d' % (tf, o - n*2))
 
     orig = float(o)/2.0 * width + width/2.0
-    print '  Origin est              : %15.9f %15.9f' % (f - orig, (f - orig)/width)
+    print('  Origin est              : %15.9f %15.9f' % (f - orig, (f - orig)/width))
     
     #
     # Estimate using reference
@@ -141,7 +141,7 @@ def estimate_first_trough_offset(j1zeros, points, distkm, freq, signal, cref):
     n = numpy.floor((f - width/2.0)/width)
     tf = f - (float(n) * width)
 
-    print '  First estimated trough r: %15.9f %d' % (tf, o - n*2)
+    print('  First estimated trough r: %15.9f %d' % (tf, o - n*2))
 
     best_offset = o
     fi, fref, res = find_reference_trough(j1zeros[best_offset], distkm, freq, cref)
@@ -150,7 +150,7 @@ def estimate_first_trough_offset(j1zeros, points, distkm, freq, signal, cref):
     score = best_dist
     delta_offset = 0
     
-    print '  Reference offset pred: %15.9f %15.9f %15.9f' % (f, fref, best_dist)
+    print('  Reference offset pred: %15.9f %15.9f %15.9f' % (f, fref, best_dist))
 
     if (f > fref):
 
@@ -161,7 +161,7 @@ def estimate_first_trough_offset(j1zeros, points, distkm, freq, signal, cref):
             fi, fref, res = find_reference_trough(j1zeros[trial_offset], distkm, freq, cref)
             trial_dist = numpy.abs(f - fref)
 
-            print '    up Trial offset pred: %d %15.9f %15.9f' % (trial_offset, fref, trial_dist)
+            print('    up Trial offset pred: %d %15.9f %15.9f' % (trial_offset, fref, trial_dist))
             if (trial_dist < best_dist):
                 best_offset = trial_offset
                 best_dist = trial_dist
@@ -172,7 +172,7 @@ def estimate_first_trough_offset(j1zeros, points, distkm, freq, signal, cref):
                 break
 
         if (True or trial_dist/best_dist < 2.0):
-            print '    Almost between two reference peaks', delta_offset, score, delta_offset + 2, trial_dist
+            print('    Almost between two reference peaks', delta_offset, score, delta_offset + 2, trial_dist)
             return delta_offset, score, (delta_offset, best_dist, delta_offset + 2, trial_dist)
 
     else:
@@ -184,7 +184,7 @@ def estimate_first_trough_offset(j1zeros, points, distkm, freq, signal, cref):
             fi, fref, res = find_reference_trough(j1zeros[trial_offset], distkm, freq, cref)
             trial_dist = numpy.abs(f - fref)
 
-            print '    dn Trial offset pred: %d %15.9f %15.9f' % (trial_offset, fref, trial_dist)
+            print('    dn Trial offset pred: %d %15.9f %15.9f' % (trial_offset, fref, trial_dist))
             if (trial_dist < best_dist):
                 best_offset = trial_offset
                 best_dist = trial_dist
@@ -195,12 +195,12 @@ def estimate_first_trough_offset(j1zeros, points, distkm, freq, signal, cref):
                 break
 
         if (True or trial_dist/best_dist < 2.0):
-            print '    Almost between two reference peaks', delta_offset, score, delta_offset - 2, trial_dist
+            print('    Almost between two reference peaks', delta_offset, score, delta_offset - 2, trial_dist)
             return delta_offset, score, (delta_offset, best_dist, delta_offset - 2, trial_dist)
 
         
     #find_reference_trough(zero, distkm, freq, cref):
-    print '  Recommended first trough offset: %d (%d) %15.9f' % (best_offset, delta_offset, score)
+    print('  Recommended first trough offset: %d (%d) %15.9f' % (best_offset, delta_offset, score))
     return delta_offset, score, None
 
 def lstscore(points, phaseref):
@@ -211,13 +211,11 @@ def lstscore(points, phaseref):
     xmin, xmax = 0.05, 0.075
 
     if min(f) > xmin or max(f) < xmax:
-        print 'exiting'
+        print('exiting')
         return 1.0e9
     
     x = numpy.linspace(xmin, xmax, 32)
     score = numpy.sqrt(numpy.sum((p(x) - phaseref(x))**2))
-
-    print score
 
     pd = p.deriv()
     h = 0.001
@@ -226,8 +224,6 @@ def lstscore(points, phaseref):
         d = pd(ix) - (phaseref(ix + h) - phaseref(ix - h))/(2.0 * h)
         dscore = dscore + d*d
 
-    print dscore
-        
     return score #+ 2.0e-1*numpy.sqrt(dscore)
 
 def findpeak(f, signal, if0, if1):
@@ -351,9 +347,9 @@ def find_forward_peak(j0zeros, j1zeros, f, c, offset,
     est_nextzf, est_nextzc = estimaterepair.predict_next(f, c, j0zeros[offset], distkm, cref)
 
     if est_nextzf > est_nextpf:
-        print f, c, offset
-        print est_nextpf, est_nextpc
-        print est_nextzf, est_nextzc
+        print(f, c, offset)
+        print(est_nextpf, est_nextpc)
+        print(est_nextzf, est_nextzc)
         raise Exception('Unexpected ordering of peak/zero')
     
     wfwidth = est_nextpf - est_nextzf 
@@ -362,7 +358,6 @@ def find_forward_peak(j0zeros, j1zeros, f, c, offset,
     if0, if1 = mkwindow(freq, wfmin, wfmax)
     pci = findpeak(freq, signal, if0, if1)
 
-    #print 'Search Peak: %15.9f : %15.9f %15.9f' % (f, wfmin, wfmax)
     if pci > 0 and (signal[pci] > maxamplitude*threshold):
 
         if (pci == if0):
@@ -373,7 +368,6 @@ def find_forward_peak(j0zeros, j1zeros, f, c, offset,
 
             binthreshold = (if1 - if0)//2
             if (True or pci - tpci < binthreshold):
-                #print 'Warning: peak slightly out of range lower', pci, tpci
                 pci = tpci
 
         elif (pci == if1):
@@ -383,7 +377,6 @@ def find_forward_peak(j0zeros, j1zeros, f, c, offset,
 
             binthreshold = (if1 - if0)//2
             if (True or tpci - pci < binthreshold):
-                #print 'Warning: peak slightly out of range higher', pci, tpci
                 pci = tpci
 
         #
@@ -394,7 +387,7 @@ def find_forward_peak(j0zeros, j1zeros, f, c, offset,
 
         if (next_f > fmax):
             # Out of range
-            print bcolors.WARNING + '  Ignoring peak: out of range' + bcolors.ENDC
+            print(bcolors.WARNING + '  Ignoring peak: out of range' + bcolors.ENDC)
             return False, 1, next_f, next_c, offset
 
         delta_c = next_c - c
@@ -402,12 +395,9 @@ def find_forward_peak(j0zeros, j1zeros, f, c, offset,
         rel_delta_c = numpy.abs(delta_c - est_delta_c)/numpy.abs(est_delta_c)
         if (rel_delta_c > MAX_GRADIENT_DEVIATION):
             # Gradient deviation
-            #print '  Ignoring peak: gradient deviation: ', delta_c, est_delta_c, rel_delta_c
             pci = -1
 
         else:
-            #print '  Found peak: predicted %15.9f found %15.9f err %12.4e' % (est_nextpf, next_f,
-            #                                                                  est_nextpf - next_f)
             return True, 1, next_f, next_c, offset
 
     #
@@ -459,7 +449,7 @@ def find_forward_trough(j0zeros, j1zeros, f, c, offset,
 
             binthreshold = (if1 - if0)//2
             if (True or pci - tpci < binthreshold):
-                print 'Warning: trough slightly out of range lower', pci, tpci
+                print('Warning: trough slightly out of range lower', pci, tpci)
                 pci = tpci
 
         elif (pci == if1):
@@ -469,7 +459,7 @@ def find_forward_trough(j0zeros, j1zeros, f, c, offset,
 
             binthreshold = (if1 - if0)//2
             if (True or tpci - pci < binthreshold):
-                print 'Warning: trough slightly out of range higher', pci, tpci
+                print('Warning: trough slightly out of range higher', pci, tpci)
                 pci = tpci
                 
 
@@ -482,7 +472,6 @@ def find_forward_trough(j0zeros, j1zeros, f, c, offset,
 
         if (next_f > fmax):
             # Out of range
-            #print '  Ignoring trough: out of range'
             return False, -1, next_f, next_c, offset
 
         delta_c = next_c - c
@@ -490,7 +479,6 @@ def find_forward_trough(j0zeros, j1zeros, f, c, offset,
         rel_delta_c = numpy.abs(delta_c - est_delta_c)/numpy.abs(est_delta_c)
         if (rel_delta_c > MAX_GRADIENT_DEVIATION):
             # Gradient deviation
-            #print '  Ignoring trough: gradient deviation: ', delta_c, est_delta_c, rel_delta_c
             pci = -1
 
         else:
@@ -542,10 +530,7 @@ def add_next_forward_from_peak(j0zeros, j1zeros, freq, signal, distkm, maxamplit
         
     if0, if1 = mkwindow(freq, wfmin, wfmax)
 
-    #print 'Forward from peak: ZC nve searching: ', f, wfmin, wfmax, est_nextf, next_offset
-    
     zci = findzerocross(sign, freq, signal, if0, if1)
-    #print '  ', zci, if0, if1, freq[zci], wfmin, wfmax
     if (zci > 0):
         t = -signal[zci]/(signal[zci + 1] - signal[zci])
         next_f = freq[zci] + (freq[zci + 1] - freq[zci])*t
@@ -554,7 +539,6 @@ def add_next_forward_from_peak(j0zeros, j1zeros, freq, signal, distkm, maxamplit
         deltac = next_c - c
         if f > 0.1 and numpy.abs(deltac) > 0.1:
             # Strong positive/negative change in phase, invalidate and fall through
-            #print 'Large change in phase: %f %f : %f %f %f %f' % (next_c, c, deltac, next_f, f, deltac/(next_f - f))
             zci = -1
         else:
             picks.append((0, next_f, next_c, next_offset))
@@ -613,8 +597,6 @@ def add_next_forward_from_trough(j0zeros, j1zeros, freq, signal, distkm, maxampl
         
     if0, if1 = mkwindow(freq, wfmin, wfmax)
 
-    #print 'ZC pve searching: ', f, wfmin, wfmax
-        
     zci = findzerocross(sign, freq, signal, if0, if1)
     if (zci > 0):
         t = -signal[zci]/(signal[zci + 1] - signal[zci])
@@ -720,9 +702,9 @@ def find_backward_peak(j0zeros, j1zeros, f, c, offset,
     est_nextzf, est_nextzc = estimaterepair.predict_next(f, c, j0zeros[offset + 1], distkm, cref)
 
     if est_nextpf > est_nextzf:
-        print f, c, offset
-        print est_nextpf, est_nextpc
-        print est_nextzf, est_nextzc
+        print(f, c, offset)
+        print(est_nextpf, est_nextpc)
+        print(est_nextzf, est_nextzc)
         raise Exception('Unexpected ordering of peak/zero')
     
     wfwidth = est_nextzf - est_nextpf 
@@ -731,7 +713,6 @@ def find_backward_peak(j0zeros, j1zeros, f, c, offset,
     if0, if1 = mkwindow(freq, wfmin, wfmax)
     pci = findpeak(freq, signal, if0, if1)
 
-    #print '  find_backward_peak search: %15.9f : %15.9f %15.9f' % (f, wfmin, wfmax)
     if pci > 0 and (signal[pci] > maxamplitude*threshold):
 
         if (pci == if0):
@@ -742,7 +723,6 @@ def find_backward_peak(j0zeros, j1zeros, f, c, offset,
 
             binthreshold = (if1 - if0)//2
             if (pci - tpci < binthreshold):
-                #print '  find_backward_peak: Warning: peak slightly out of range lower', pci, tpci
                 pci = tpci
 
         elif (pci == if1):
@@ -752,7 +732,6 @@ def find_backward_peak(j0zeros, j1zeros, f, c, offset,
 
             binthreshold = (if1 - if0)//2
             if (tpci - pci < binthreshold):
-                #print '  find_backward_peak: Warning: peak slightly out of range higher', pci, tpci
                 pci = tpci
 
         #
@@ -763,7 +742,6 @@ def find_backward_peak(j0zeros, j1zeros, f, c, offset,
 
         if (next_f < fmin):
             # Out of range
-            #print bcolors.WARNING + '  find_backward_peak: Ignoring peak: out of range' + bcolors.ENDC
             return False, 1, next_f, next_c, offset
 
         delta_c = next_c - c
@@ -771,12 +749,9 @@ def find_backward_peak(j0zeros, j1zeros, f, c, offset,
         rel_delta_c = numpy.abs(delta_c - est_delta_c)/numpy.abs(est_delta_c)
         if (rel_delta_c > MAX_GRADIENT_DEVIATION):
             # Gradient deviation
-            #print bcolors.WARNING + '  find_backward_peak: Ignoring peak: gradient deviation: ' + bcolors.ENDC, delta_c, est_delta_c, rel_delta_c
             pci = -1
 
         else:
-            #print '  find_backward_peak: Found peak: predicted %15.9f found %15.9f err %12.4e' % (est_nextpf, next_f,
-                                                                                                  #est_nextpf - next_f)
             return True, 1, next_f, next_c, offset
 
     #
@@ -828,7 +803,6 @@ def find_backward_trough(j0zeros, j1zeros, f, c, offset,
 
             binthreshold = (if1 - if0)//2
             if (True or pci - tpci < binthreshold):
-                #print '  find_backward_trough: Warning: trough slightly out of range lower', pci, tpci
                 pci = tpci
 
         elif (pci == if1):
@@ -838,7 +812,6 @@ def find_backward_trough(j0zeros, j1zeros, f, c, offset,
 
             binthreshold = (if1 - if0)//2
             if (True or tpci - pci < binthreshold):
-                #print '  find_backward_trough: Warning: trough slightly out of range higher', pci, tpci
                 pci = tpci
                 
         #
@@ -849,7 +822,6 @@ def find_backward_trough(j0zeros, j1zeros, f, c, offset,
 
         if (next_f < fmin):
             # Out of range
-            #print '  find_backward_trough: Ignoring trough: out of range'
             return False, -1, next_f, next_c, offset
 
         delta_c = next_c - c
@@ -857,7 +829,6 @@ def find_backward_trough(j0zeros, j1zeros, f, c, offset,
         rel_delta_c = numpy.abs(delta_c - est_delta_c)/numpy.abs(est_delta_c)
         if (rel_delta_c > MAX_GRADIENT_DEVIATION):
             # Gradient deviation
-            #print '  find_backward_trough: Ignoring trough: gradient deviation: ', delta_c, est_delta_c, rel_delta_c
             pci = -1
 
         else:
@@ -1080,7 +1051,6 @@ def pick(j0zeros, j1zeros, freq, signal, distkm, phaseref, fmin, fmax, suggestof
         bestoffset = -1
         bestdist = 1.0e9
         cref = phaseref(f)
-        #print cref
         
         while offset < len(j1zeros):
             c = 2.0*numpy.pi*f * distkm/j1zeros[offset]
@@ -1115,9 +1085,7 @@ def pick(j0zeros, j1zeros, freq, signal, distkm, phaseref, fmin, fmax, suggestof
             offset = offset + 2
 
         offset = bestoffset + suggestoffset
-        print 't offset: ', bestoffset, suggestoffset
         c = 2.0*numpy.pi*f * distkm/j1zeros[offset]
-        print 't start : ', f, c
         picks = [(1.0, f, c, offset)]
 
     while True:
@@ -1175,8 +1143,6 @@ def estimate_error(j0zeros, j1zeros, s, f, c, o, distkm):
         
 if __name__ == '__main__':
 
-    print sys.path[0]
-    
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-p', '--path', type = str, default = '/home/rhys/PhD/PhDS/tools/ANTEstimate/Processing', help = 'Data base path')
@@ -1245,10 +1211,7 @@ if __name__ == '__main__':
     j0zeros = scipy.special.jn_zeros(0, 1024)
     j1zeros = scipy.special.jn_zeros(1, 1024)
 
-    print j0zeros[:5]
-    print j1zeros[:5]
-    
-    print 'Picking Rayleigh'
+    print('Picking Rayleigh')
     rayleighdoffset = 0
     acceptable = False
     alreadytried = {}
@@ -1270,10 +1233,10 @@ if __name__ == '__main__':
 
         if offset != 0:
             acceptable = False
-            print 'Retrying', offset
+            print('Retrying', offset)
             rayleighdoffset = rayleighdoffset + offset
             if alreadytried.has_key(rayleighdoffset):
-                print 'Looped back on self, using best score'
+                print('Looped back on self, using best score')
                 minv = 1e30
                 minpts = None
                 for k, (pts, v) in alreadytried.items():

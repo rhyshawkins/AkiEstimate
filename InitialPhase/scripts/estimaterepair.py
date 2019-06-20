@@ -52,7 +52,7 @@ def predict_next(f, c, zero, distkm, cref):
 
     qd = qb*qb - 4.0*qa*qc
     if qd < 0.0:
-        print qd, qa, qb, qc, f, c, flin, clin, c2, dcdf
+        print(qd, qa, qb, qc, f, c, flin, clin, c2, dcdf)
         raise Exception('No solution')
 
     qd = numpy.sqrt(qd)
@@ -154,10 +154,10 @@ def fix_forward_step(cref, distkm, j1zeros, offset, i, batches, fixed_batches):
                 #
                 # Skip
                 #
-                print 'Repairing too short (next better)'
+                print('Repairing too short (next better)')
                 return i + 2, fixed_batches
         else:
-            print 'Repairing too short', fp, fd1, fd1 + 0.5 * halfperiod
+            print('Repairing too short', fp, fd1, fd1 + 0.5 * halfperiod)
             return i + 2, fixed_batches
     #
     # If the next frequency bin is too far, this batch may be a
@@ -195,7 +195,7 @@ def fix_forward_step(cref, distkm, j1zeros, offset, i, batches, fixed_batches):
                 return i + 1, fixed_batches
 
             else:
-                print 'Not split but fat', fp, fmin, fmax, est_nextf, (fd1 + 1.6 * halfperiod)
+                print('Not split but fat', fp, fmin, fmax, est_nextf, (fd1 + 1.6 * halfperiod))
         
         
         
@@ -246,8 +246,6 @@ def fix_forward(f0, j1zeros, batches, distkm, phaseref):
         else:
             break
 
-    print 'Offset:', offset, besti
-
     #
     # Check if previous peak is too close
     #
@@ -255,12 +253,10 @@ def fix_forward(f0, j1zeros, batches, distkm, phaseref):
     est_prevf, est_prevc = predict_next(bestf, c, j1zeros[offset - 1], distkm, phaseref)
     ratio = (bestf - fpp)/(bestf - est_prevf)
     while (ratio < 0.4):
-        print 'Next 2'
         offset = offset + 2
         besti = besti + 2
         bestf = numpy.mean(batches[besti][1])
         c = 2.0*numpy.pi*bestf * distkm/j1zeros[offset]
-        print '  ', bestf, c
         fpp = numpy.mean(batches[besti - 1][1])
         est_prevf, est_prevc = predict_next(bestf, c, j1zeros[offset - 1], distkm, phaseref)
         ratio = (bestf - fpp)/(bestf - est_prevf)
@@ -281,7 +277,6 @@ def fix_forward(f0, j1zeros, batches, distkm, phaseref):
     # We assume this is a good peak and start from here
     #
     fixed_batches = batches[:i + 1]
-    print 'Is Peak:', batches[i][0], i
     i = i + 1
 
     while i < L:
@@ -316,13 +311,11 @@ def fix_backward_step(cref, distkm, j1zeros, offset, i, batches, fixed_batches, 
 
     halfperiod = fd1 - est_nextf
 
-    #print fp, fd1, halfperiod, (fd1 - fp)/halfperiod
     if (fp > fd1 - halfperiod*0.4):
 
-        # Always skip 2 in this case
-        print 'skipping', fp, fd1, fd1 - halfperiod*0.4, i
+        print('skipping', fp, fd1, fd1 - halfperiod*0.4, i)
         if (i > 2):
-            print  '', numpy.mean(batches[i - 1][1]), numpy.mean(batches[i - 2][1])
+            print('', numpy.mean(batches[i - 1][1]), numpy.mean(batches[i - 2][1]))
         return i - 2, fixed_batches
 
     elif (fp > (fd1 - halfperiod) and i > 2):
@@ -331,28 +324,8 @@ def fix_backward_step(cref, distkm, j1zeros, offset, i, batches, fixed_batches, 
         fp2 = numpy.mean(batches[i - 2][1])
         if (numpy.abs(fp2 - est_nextf) < numpy.abs(fp - est_nextf)):
             # Skip
-            print 'skipping 2', fp, fd1 - halfperiod, est_nextf, fp2
+            print('skipping 2', fp, fd1 - halfperiod, est_nextf, fp2)
             return i - 2, fixed_batches
-
-#        elif fp < 0.07:
-#            up, _ = batches[i]
-#            fixed_batches.insert(0, (up, [est_nextf]))
-#            return i - 1, fixed_batches
-
-
-#        if i > 2:
-#            fp2 = numpy.mean(batches[i - 2][1])
-#            if (numpy.abs(fp2 - est_nextf) < numpy.abs(fp - est_nextf)):
-#                # Skip
-#                return i - 2, fixed_batches
-#
-#            else:
-#                print 'unfixed: extra non skip', j, fp, est_nextf, fd1 - halfperiod*0.4
-#
-#        else:
-#            
-#            print 'unfixed: extra', j, fp, est_nextf, fd1 - halfperiod*0.4
-
 
     elif (fp < fd1 - halfperiod*1.6):
 
@@ -394,16 +367,7 @@ def fix_backward_step(cref, distkm, j1zeros, offset, i, batches, fixed_batches, 
                 return i, fixed_batches
                 
                 
-                # Even spread
-                #up, fs = batches[i]
-                #delta = (fd1 - fp)/3.0
-                #fixed_batches.insert(0, (up, [fd1 - delta]))
-                #fixed_batches.insert(0, (not up, [fd1 - 2.0*delta]))
-                #fixed_batches.insert(0, batches[i])
-                #return i - 1, fixed_batches
-                
-                
-            print 'unfixed: missing', j, fp, est_nextf, fd1 - halfperiod*1.6, fmax, (fd1 - fp)/halfperiod, est_nextf2, halfperiod
+            print('unfixed: missing', j, fp, est_nextf, fd1 - halfperiod*1.6, fmax, (fd1 - fp)/halfperiod, est_nextf2, halfperiod)
 
     fixed_batches.insert(0, batches[i])
     return i - 1, fixed_batches
@@ -426,7 +390,6 @@ def append_backward_step(cref, distkm, j1zeros, offset, fixed_batches, fixed_bat
         est_nextf, est_nextc = predict_next(fd1, cd1, j1zeros[offset + j], distkm, cref)
 
         if est_nextf > 0.0:
-            print 'Adding:', est_nextf, est_nextc, fd1, cd1
             up, _ = fixed_batches[0]
             fixed_batches.insert(0, (not up, [est_nextf]))
             return True
@@ -481,12 +444,10 @@ def fix_backward(f0, j1zeros, batches, distkm, phaseref):
     est_prevf, est_prevc = predict_next(bestf, c, j1zeros[offset - 1], distkm, phaseref)
     ratio = (bestf - fpp)/(bestf - est_prevf)
     while (ratio < 0.4):
-        print 'Next 2'
         offset = offset + 2
         besti = besti + 2
         bestf = numpy.mean(batches[besti][1])
         c = 2.0*numpy.pi*bestf * distkm/j1zeros[offset]
-        print '  ', bestf, c
         fpp = numpy.mean(batches[besti - 1][1])
         est_prevf, est_prevc = predict_next(bestf, c, j1zeros[offset - 1], distkm, phaseref)
         ratio = (bestf - fpp)/(bestf - est_prevf)
@@ -497,8 +458,6 @@ def fix_backward(f0, j1zeros, batches, distkm, phaseref):
 
     i = besti
     L = len(batches)
-
-    print c
 
     #
     # We assume this is a good peak and start from here
@@ -542,17 +501,17 @@ if __name__ == '__main__':
             bestd = d
             bestf = fz
 
-    print 'Target', f, c
+    print('Target', f, c)
     f = bestf
     c = 2.0*numpy.pi*f * distkm/j1zeros[offset]
-    print 'Got', f, c, loveref(f)
+    print('Got', f, c, loveref(f))
 
     fn, cn = predict_next(f, c, j1zeros[offset + 1], distkm, loveref)
 
-    print f, c
-    print fn, cn, loveref(fn), fn - f
+    print(f, c)
+    print(fn, cn, loveref(fn), fn - f)
 
     fn, cn = predict_next(f, c, j1zeros[offset - 1], distkm, loveref)
             
-    print fn, cn, loveref(fn), f - fn
+    print(fn, cn, loveref(fn), f - fn)
     
