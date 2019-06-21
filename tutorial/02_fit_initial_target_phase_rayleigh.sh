@@ -8,7 +8,7 @@ else
 fi
 
 
-mkdir -p Initial_${STATIONPAIR}
+mkdir -p Initial_${STATIONPAIR}_Rayleigh
 
 FMIN=0.025
 FMAX=0.35
@@ -20,10 +20,10 @@ VPVS=0.05
 SKIP=15
 
 #gdb --args 
-/usr/bin/time -o Initial_${STATIONPAIR}/opt.time ../InitialPhase/optimizer/optimizerayleigh \
+/usr/bin/time -o Initial_${STATIONPAIR}_Rayleigh/opt.time ../InitialPhase/optimizer/optimizerayleigh \
     -i ../example_data/RayleighResponse/dispersion_${STATIONPAIR}.txt \
-    -C InitialPhase/phase_${STATIONPAIR}.rayleigh \
-    -o Initial_${STATIONPAIR}/opt \
+    -C InitialPhaseRayleigh/phase_${STATIONPAIR}.rayleigh \
+    -o Initial_${STATIONPAIR}_Rayleigh/opt \
     -r ../Reference/models/greenetal+lidettrick_smooth_edgecorrected.txt \
     -f $FMIN \
     -F $FMAX \

@@ -33,7 +33,12 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
 
-    rayleighpred = numpy.loadtxt('%s/opt.pred' % args.fits)
+    if os.access(os.path.join(args.fits, 'opt.pred'), os.R_OK):
+        rayleighpred = numpy.loadtxt(os.path.join(args.fits, 'opt.pred'))
+    elif os.access(os.path.join(args.fits, 'opt.pred-rayleigh'), os.R_OK):
+        rayleighpred = numpy.loadtxt(os.path.join(args.fits, 'opt.pred-rayleigh'))
+    else:
+        raise Exception('No predictions file %s found' % os.path.join(args.fits, 'opt.pred'))
 
     stationpair = '_'.join(os.path.basename(args.fits.rstrip('/')).split('_')[1:3])
 

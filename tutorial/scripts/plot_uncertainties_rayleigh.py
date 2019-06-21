@@ -98,8 +98,14 @@ if __name__ == '__main__':
     figB, bx = P.subplots()
     figB.set_tight_layout(True)
     figB.set_size_inches((args.width, args.height))
-    
-    pred = numpy.loadtxt(os.path.join(args.fits, 'opt.pred'))
+
+    if os.access(os.path.join(args.fits, 'opt.pred'), os.R_OK):
+        pred = numpy.loadtxt(os.path.join(args.fits, 'opt.pred'))
+    elif os.access(os.path.join(args.fits, 'opt.pred-rayleigh'), os.R_OK):
+        pred = numpy.loadtxt(os.path.join(args.fits, 'opt.pred-rayleigh'))
+    else:
+        raise Exception('No predictions file %s found' % os.path.join(args.fits, 'opt.pred'))
+        
     indices = numpy.where(pred[:,1] > 0.0)[0]
     
     f = pred[indices,0]
@@ -123,9 +129,6 @@ if __name__ == '__main__':
     figD, dx = P.subplots()
     figD.set_tight_layout(True)
     figD.set_size_inches((args.width, args.height))
-    
-    pred = numpy.loadtxt(os.path.join(args.fits, 'opt.pred'))
-    indices = numpy.where(pred[:,1] > 0.0)[0]
     
     f = pred[indices,0]
     U = pred[indices,1]

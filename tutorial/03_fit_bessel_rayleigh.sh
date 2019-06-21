@@ -7,7 +7,7 @@ else
   STATIONPAIR=$1
 fi
 
-mkdir -p Final_${STATIONPAIR}
+mkdir -p Final_${STATIONPAIR}_Rayleigh
 
 FMIN=0.025
 FMAX=0.35
@@ -18,10 +18,10 @@ VPVS=0.05
 
 SKIP=15
 
-/usr/bin/time -o Final_${STATIONPAIR}/opt.time ../Phase/optimizer/optimizerayleigh \
+/usr/bin/time -o Final_${STATIONPAIR}_Rayleigh/opt.time ../Phase/optimizer/optimizerayleigh \
     -i ../example_data/RayleighResponse/dispersion_${STATIONPAIR}.txt \
-    -o Final_${STATIONPAIR}/opt \
-    -r Initial_${STATIONPAIR}/opt.model \
+    -o Final_${STATIONPAIR}_Rayleigh/opt \
+    -r Initial_${STATIONPAIR}_Rayleigh/opt.model \
     -f $FMIN \
     -F $FMAX \
     -R $RHO \

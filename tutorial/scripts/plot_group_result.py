@@ -98,10 +98,10 @@ if __name__ == '__main__':
     
     (_, _, _, _, distkm, _), f, sample_rate, rayleigh_acsn, rayleigh_csn, rayleigh_spec, rayleigh_ncf = loaddispersion(rayleighdata)
 
-    print distkm, args.sigma, distkm/args.sigma, args.sigma/distkm
+    print(distkm, args.sigma, distkm/args.sigma, args.sigma/distkm)
 
     sigma = autosigma(distkm)
-    print 'Auto sigma:', sigma
+    print('Auto sigma:', sigma)
 
     vtaxis, causal_love, acausal_love = mkftan(f, sample_rate, love_spec,
                                                args.period_min, args.period_max,
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     r, c = mlove.shape
             
             
-    ax.contourf(mlove, extent = [f[0], f[-1], args.vmin, args.vmax], linewidth = 0.5,
+    ax.contourf(mlove, extent = [f[0], f[-1], args.vmin, args.vmax],
                 cmap = args.cmap)
     indices = numpy.where(lovepred[:,1] > 0.0)[0]
     ax.plot(lovepred[indices,0], lovepred[indices,1]/1.0e3, 'k-')
@@ -144,7 +144,7 @@ if __name__ == '__main__':
     r, c = mrayleigh.shape
             
             
-    bx.contourf(mrayleigh, extent = [f[0], f[-1], args.vmin, args.vmax], linewidth = 0.5,
+    bx.contourf(mrayleigh, extent = [f[0], f[-1], args.vmin, args.vmax],
                 cmap = args.cmap)
     indices = numpy.where(rayleighpred[:,1] > 0.0)[0]
     bx.plot(rayleighpred[indices,0], rayleighpred[indices,1]/1.0e3, 'k-')

@@ -86,7 +86,12 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
 
-    rayleighpred = numpy.loadtxt('%s/opt.pred' % args.fits)
+    if os.access(os.path.join(args.fits, 'opt.pred'), os.R_OK):
+        rayleighpred = numpy.loadtxt(os.path.join(args.fits, 'opt.pred'))
+    elif os.access(os.path.join(args.fits, 'opt.pred-rayleigh'), os.R_OK):
+        rayleighpred = numpy.loadtxt(os.path.join(args.fits, 'opt.pred-rayleigh'))
+    else:
+        raise Exception('No predictions file %s found' % os.path.join(args.fits, 'opt.pred'))
 
     stationpair = '_'.join(os.path.basename(args.fits.rstrip('/')).split('_')[1:3])
 
@@ -94,10 +99,10 @@ if __name__ == '__main__':
 
     (_, _, _, _, distkm, _), f, sample_rate, rayleigh_acsn, rayleigh_csn, rayleigh_spec, rayleigh_ncf = loaddispersion(rayleighdata)
 
-    print distkm, args.sigma, distkm/args.sigma, args.sigma/distkm
+    print(distkm, args.sigma, distkm/args.sigma, args.sigma/distkm)
 
     sigma = autosigma(distkm)
-    print 'Auto sigma:', sigma
+    print('Auto sigma:', sigma)
 
     vtaxis, causal_rayleigh, acausal_rayleigh = mkftan(f, sample_rate, rayleigh_spec,
                                                        args.period_min, args.period_max,
@@ -116,7 +121,7 @@ if __name__ == '__main__':
     r, c = mrayleigh.shape
             
             
-    bx.contourf(mrayleigh, extent = [f[0], f[-1], args.vmin, args.vmax], linewidth = 0.5,
+    bx.contourf(mrayleigh, extent = [f[0], f[-1], args.vmin, args.vmax], 
                 cmap = args.cmap)
     indices = numpy.where(rayleighpred[:,1] > 0.0)[0]
     bx.plot(rayleighpred[indices,0], rayleighpred[indices,1]/1.0e3, 'k-')
