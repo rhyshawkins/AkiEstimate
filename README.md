@@ -15,7 +15,7 @@ in the manuscript reference above.
 
 ## Authors
 
-Rhys Hawkins
+Rhys Hawkins (r.p.hawkins@uu.nl)
 
 ## License
 
@@ -36,7 +36,7 @@ a modified BSD license (see http://www.netlib.org/lapack/LICENSE.txt).
 
 ### For processing and plotting
 
-* Python 2.7
+* Python 2.7/3
 * Matplotlib
 * Numpy
 
@@ -69,6 +69,15 @@ an example processing of an ambient noise cross-correlation, namely
 * 01_create_initial_target_phase.sh
 * 02_fit_initial_target_phase.sh
 * 03_fit_bessel.sh
+
+There are corresponding scripts for running using only Rayleigh wave observations.
+
+* 01_create_initial_target_phase_rayleigh.sh
+* 02_fit_initial_target_phase_rayleigh.sh
+* 03_fit_bessel_rayleigh.sh
+
+Within these scripts, you may need to modify the python interpreter used in the
+01_create_*.sh scripts to suit.
 
 Additionally, there is a latex document, tutorial.tex which describes in detail
 the inputs and parameters that are used to control the processing of ambient
